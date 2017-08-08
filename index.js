@@ -1,22 +1,18 @@
 'use strict';
 const _ = require('lodash');
+const _dir = process.env.LAMBDA_TASK_ROOT || process.env.PWD;
 const stage = process.env.AWS_LAMBDA_FUNCTION_NAME ?
   process.env.AWS_LAMBDA_FUNCTION_NAME.split('-')[2] : 'dev';
 let Config = require('config-lambda')({
-  environments: require(`${process.env.LAMBDA_TASK_ROOT ||
-    process.env.PWD}/environment.json`),
+  environments: require(`${_dir}/environment.json`),
   stage
 });
 let Credstash = require('credstash-lambda')({
   table: [stage, 'pay', 'credstash'].join('-'),
   region: Config.get('aws.region'),
-  keys: _.keys(require(`${process.env.LAMBDA_TASK_ROOT ||
-    process.env.PWD}/creds.example.json`)),
-  defaults: require('fs')
-    .existsSync(`${process.env.LAMBDA_TASK_ROOT ||
-      process.env.PWD}/creds.json`) ?
-    require(`${process.env.LAMBDA_TASK_ROOT ||
-      process.env.PWD}/creds.json`) : null
+  keys: _.keys(require(`${_dir}/creds.example.json`)),
+  defaults: require('fs').existsSync(`${_dir}/creds.json`) ?
+    require(`${_dir}/creds.json`) : null
 });
 let Common = {};
 Common.load = next => {
