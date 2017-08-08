@@ -3,7 +3,7 @@ let apiUrl;
 let token;
 let secret;
 let timeout;
-let sign;
+let HmacAuthorize;
 
 function request(appId, method, resource, payload, callback) {
   let options = {
@@ -11,7 +11,7 @@ function request(appId, method, resource, payload, callback) {
     timeout: timeout,
     method,
     headers: {
-      'Authorization': sign(method, resource, 'application/json',
+      'Authorization': HmacAuthorize.sign(method, resource, 'application/json',
         payload ? JSON.stringify(payload) : null),
       'User-Agent': 'ClassyPay Node.JS'
     }
@@ -41,7 +41,7 @@ module.exports = (config) => {
   token = config.token;
   secret = config.secret;
   timeout = config.timeout;
-  sign = require('authorization-hmac256')({
+  HmacAuthorize = require('authorization-hmac256')({
     service: 'CWS',
     token,
     secret
