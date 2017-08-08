@@ -1,6 +1,6 @@
 {
   "name": "classy-lambda-common",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Common configuration and tools for Classy Lambda modules.",
   "main": "index.js",
   "scripts": {
@@ -27,8 +27,7 @@
     "bunyan-loggly": "^1.2.0",
     "config-lambda": "^1.0.3",
     "credstash-lambda": "^1.0.10",
-    "lodash": "^4.17.4",
-    "loggly": "^1.1.1"
+    "lodash": "^4.17.4"
   },
   "devDependencies": {
     "eslint": "^4.3.0",
