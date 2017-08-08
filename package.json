@@ -27,10 +27,11 @@
     "bunyan-loggly": "^1.2.0",
     "config-lambda": "^1.0.3",
     "credstash-lambda": "^1.0.10",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.4",
+    "request": "^2.81.0"
   },
   "devDependencies": {
-    "eslint": "^4.3.0",
+    "eslint": "^4.4.1",
     "eslint-config-google": "^0.9.1"
   }
 }

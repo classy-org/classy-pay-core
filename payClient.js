@@ -1,11 +1,12 @@
 'use strict';
+const request = require('request');
 let apiUrl;
 let token;
 let secret;
 let timeout;
 let HmacAuthorize;
 
-function request(appId, method, resource, payload, callback) {
+function payRequest(appId, method, resource, payload, callback) {
   let options = {
     url: `${apiUrl}${resource}?appId=${appId}&meta=true`,
     timeout: timeout,
@@ -47,6 +48,6 @@ module.exports = (config) => {
     secret
   });
   return {
-    request: request
+    request: payRequest
   };
 };
