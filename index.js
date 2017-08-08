@@ -3,15 +3,15 @@ const _ = require('lodash');
 const stage = process.env.AWS_LAMBDA_FUNCTION_NAME ?
   process.env.AWS_LAMBDA_FUNCTION_NAME.split('-')[2] : 'dev';
 let Config = require('config-lambda')({
-  environments: require(`${__dirname}/environment.json`),
+  environments: require(`${process.env.PWD}/environment.json`),
   stage
 });
 let Credstash = require('credstash-lambda')({
   table: [stage, 'pay', 'credstash'].join('-'),
   region: Config.get('aws.region'),
-  keys: _.keys(require(`${__dirname}/creds.example.json`)),
-  defaults: require('fs').existsSync(`${__dirname}/creds.json`) ?
-    require(`${__dirname}/creds.json`) : null
+  keys: _.keys(require(`${process.env.PWD}/creds.example.json`)),
+  defaults: require('fs').existsSync(`${process.env.PWD}/creds.json`) ?
+    require(`${process.env.PWD}/creds.json`) : null
 });
 let Common = {};
 Common.load = next => {
