@@ -14,31 +14,38 @@ let Credstash = require('credstash-lambda')({
   defaults: require('fs').existsSync(`${_dir}/creds.json`) ?
     require(`${_dir}/creds.json`) : null
 });
-let Common = {};
+let Common = {
+  loaded: false
+};
 Common.load = next => {
-  Config.load([Credstash], function(error) {
-    if (error) {
-      next(error);
-    } else {
-      Common.Logger = require('./logging')({
-        level: Config.get('log.level'),
-        token: Config.get('LOG_LOGGLY_TOKEN'),
-        subdomain: Config.get('log.loggly.subdomain'),
-        tags: Config.get('log.loggly.tags')
-      });
-      Common.PayClient = require('./payClient')({
-        apiUrl: Config.get('pay.apiUrl'),
-        timeout: Config.get('pay.timeout'),
-        token: Config.get('PAY_TOKEN'),
-        secret: Config.get('PAY_SECRET')
-      });
-      Common.Replacer = require('./replacer')({
-        keys: Config.get('security.obfuscate'),
-        replacement: Config.get('security.replacement')
-      });
-      next();
-    }
-  });
+  if (Common.loaded) {
+    next();
+  } else {
+    Config.load([Credstash], function(error) {
+      if (error) {
+        next(error);
+      } else {
+        Common.Logger = require('./logging')({
+          level: Config.get('log.level'),
+          token: Config.get('LOG_LOGGLY_TOKEN'),
+          subdomain: Config.get('log.loggly.subdomain'),
+          tags: Config.get('log.loggly.tags')
+        });
+        Common.PayClient = require('./payClient')({
+          apiUrl: Config.get('pay.apiUrl'),
+          timeout: Config.get('pay.timeout'),
+          token: Config.get('PAY_TOKEN'),
+          secret: Config.get('PAY_SECRET')
+        });
+        Common.Replacer = require('./replacer')({
+          keys: Config.get('security.obfuscate'),
+          replacement: Config.get('security.replacement')
+        });
+        Common.loaded = true;
+        next();
+      }
+    });
+  }
 };
 Common.get = key => {
   let value = _.get(Common, key, null);
