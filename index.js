@@ -32,6 +32,10 @@ Common.load = next => {
         token: Config.get('PAY_TOKEN'),
         secret: Config.get('PAY_SECRET')
       });
+      Common.Replacer = require('./replacer')({
+        keys: Config.get('security.obfuscate'),
+        replacement: Config.get('security.replacement')
+      });
       next();
     }
   });
