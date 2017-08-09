@@ -1,6 +1,6 @@
 {
   "name": "classy-lambda-common",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Common configuration and tools for Classy Lambda modules.",
   "main": "index.js",
   "scripts": {
