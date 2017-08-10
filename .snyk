@@ -9,4 +9,8 @@ ignore:
     - bunyan-loggly > loggly > request > tunnel-agent:
         reason: None given
         expires: '2017-09-07T18:33:59.305Z'
+  'npm:shelljs:20140723':
+    - serverless > shelljs:
+        reason: None given
+        expires: '2017-09-09T16:18:43.899Z'
 patch: {}
