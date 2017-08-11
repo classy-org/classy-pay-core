@@ -35,8 +35,6 @@ function apiRequest(method, resource, payload, callback) {
       if (!error && response.statusCode === 200) {
         callback(null, body ? JSON.parse(body) : {});
       } else {
-        log.error(error || `Response not 200:
-          ${JSON.stringify(response, null, 2)}`);
         callback(error || `Response was not 200 OK:
           ${JSON.stringify(response, null, 2)}`);
       }
