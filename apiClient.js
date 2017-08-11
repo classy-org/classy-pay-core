@@ -1,5 +1,6 @@
 'use strict';
 
+const request = require('request');
 const OAuth2 = require('oauth').OAuth2;
 let clientId;
 let clientSecret;
