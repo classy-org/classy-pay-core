@@ -43,7 +43,7 @@ See prerequisites
 
 # supported toolset
 
-*Common.get(key):* works for both static environment key/value pairs (i.e. environment.json), and also CredStash secrets.  For static environment key/value pairs, you can specify hierarch via dot notation, i.e. Common.get('this.is.valid') returns "value" for:
+*Common.get(key):* works for both static environment key/value pairs (i.e. environment.json), and also CredStash secrets.  For static environment key/value pairs, you can specify nested keys in hierarchy via dot notation, i.e. Common.get('this.is.valid') returns "value" for:
 
 ```json
 {
