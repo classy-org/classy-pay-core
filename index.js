@@ -31,12 +31,14 @@ Common.load = next => {
           subdomain: Config.get('log.loggly.subdomain'),
           tags: Config.get('log.loggly.tags')
         });
-        Common.PayClient = require('./payClient')({
-          apiUrl: Config.get('pay.apiUrl'),
-          timeout: Config.get('pay.timeout'),
-          token: Config.get('PAY_TOKEN'),
-          secret: Config.get('PAY_SECRET')
-        });
+        if (Config.get('pay')) {
+          Common.PayClient = require('./payClient')({
+            apiUrl: Config.get('pay.apiUrl'),
+            timeout: Config.get('pay.timeout'),
+            token: Config.get('PAY_TOKEN'),
+            secret: Config.get('PAY_SECRET')
+          });
+        }
         Common.Replacer = require('./replacer')({
           keys: Config.get('security.obfuscate'),
           replacement: Config.get('security.replacement')
