@@ -25,12 +25,14 @@ Common.load = next => {
       if (error) {
         next(error);
       } else {
-        Common.Logger = require('./logging')({
-          level: Config.get('log.level'),
-          token: Config.get('LOG_LOGGLY_TOKEN'),
-          subdomain: Config.get('log.loggly.subdomain'),
-          tags: Config.get('log.loggly.tags')
-        });
+        if (Config.get('log')) {
+          Common.Logger = require('./logging')({
+            level: Config.get('log.level'),
+            token: Config.get('LOG_LOGGLY_TOKEN'),
+            subdomain: Config.get('log.loggly.subdomain'),
+            tags: Config.get('log.loggly.tags')
+          });
+        }
         if (Config.get('pay')) {
           Common.PayClient = require('./payClient')({
             apiUrl: Config.get('pay.apiUrl'),
@@ -39,10 +41,21 @@ Common.load = next => {
             secret: Config.get('PAY_SECRET')
           });
         }
-        Common.Replacer = require('./replacer')({
-          keys: Config.get('security.obfuscate'),
-          replacement: Config.get('security.replacement')
-        });
+        if (Config.get('api')) {
+          Common.ApiClient = require('./apiClient')({
+            clientId: Config.get('APIV2_CLIENT_ID'),
+            clientSecret: Config.get('APIV2_CLIENT_SECRET'),
+            oauthUrl: Config.get('api.oauthUrl'),
+            apiUrl: Config.get('api.apiUrl'),
+            timeout: Config.get('api.timeout')
+          });
+        }
+        if (Config.get('security')) {
+          Common.Replacer = require('./replacer')({
+            keys: Config.get('security.obfuscate'),
+            replacement: Config.get('security.replacement')
+          });
+        }
         Common.loaded = true;
         next();
       }

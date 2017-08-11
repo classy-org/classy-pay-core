@@ -1,6 +1,6 @@
 {
   "name": "classy-lambda-common",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "Common configuration and tools for Classy Lambda modules.",
   "main": "index.js",
   "scripts": {
@@ -29,6 +29,7 @@
     "config-lambda": "^1.0.3",
     "credstash-lambda": "^1.0.10",
     "lodash": "^4.17.4",
+    "oauth": "^0.9.15",
     "request": "^2.81.0",
     "serverless": "^1.19.0",
     "serverless-snyk": "^1.2.0",
