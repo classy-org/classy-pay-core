@@ -34,7 +34,7 @@ Common.load = next => {
           });
         }
         if (Config.get('pay')) {
-          Common.PayClient = require('./payClient')({
+          Common.PayClient = require('classy-pay-client')({
             apiUrl: Config.get('pay.apiUrl'),
             timeout: Config.get('pay.timeout'),
             token: Config.get('PAY_TOKEN'),
