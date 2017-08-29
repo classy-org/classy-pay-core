@@ -42,7 +42,7 @@ Common.load = next => {
           });
         }
         if (Config.get('api')) {
-          Common.ApiClient = require('./apiClient')({
+          Common.ApiClient = require('classy-api-client')({
             clientId: Config.get('APIV2_CLIENT_ID'),
             clientSecret: Config.get('APIV2_CLIENT_SECRET'),
             oauthUrl: Config.get('api.oauthUrl'),
