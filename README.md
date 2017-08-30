@@ -114,15 +114,13 @@ Get ApiClient: Common.get(key)
 ```javascript
 let ApiClient = Common.get('ApiClient');
 
-// ApiClient.request(method, resource, payload, callback)
-ApiClient.request('PUT', '/recurring-donation-plans/1', {
-  status: 'failed'
-}, function(error, result) {
-  if (error) {
-    callback(error);
-  } else {
+// See classy-node for details
+ApiClient.app().then(() => {
+  ApiClient.organizations.retrieve(1, {
+    token: 'app'
+  }).then((result) => {
     console.log(result);
-  }
+  });
 });
 ```
 
