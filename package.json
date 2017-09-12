@@ -22,19 +22,13 @@
   },
   "homepage": "https://github.com/jnngrm/classy-lambda-common#readme",
   "dependencies": {
-    "async": "^2.5.0",
-    "authorization-hmac256": "^1.0.0",
     "bunyan": "^1.8.12",
     "bunyan-loggly": "^1.2.0",
+    "classy-node": "^2.4.3",
     "classy-pay-client": "^1.0.0",
     "config-lambda": "^1.0.3",
     "credstash-lambda": "^1.0.10",
-    "lodash": "^4.17.4",
-    "oauth": "^0.9.15",
-    "request": "^2.81.0",
-    "serverless": "^1.19.0",
-    "serverless-snyk": "^1.2.0",
-    "snyk": "^1.38.1"
+    "lodash": "^4.17.4"
   },
   "devDependencies": {
     "eslint": "^4.4.1",
