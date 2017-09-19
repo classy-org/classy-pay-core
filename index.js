@@ -42,12 +42,12 @@ Common.load = next => {
           });
         }
         if (Config.get('api')) {
-          const Classy = require('classy-node');
-          Common.ApiClient = new Classy({
+          Common.ApiClient = require('classy-api-client')({
             clientId: Config.get('APIV2_CLIENT_ID'),
             clientSecret: Config.get('APIV2_CLIENT_SECRET'),
-            baseUrl: Config.get('api.oauthUrl'),
-            basePath: '2.0'
+            timeout: Config.get('api.timeout'),
+            oauthUrl: Config.get('api.oauthUrl'),
+            apiUrl: Config.get('api.apiUrl')
           });
         }
         if (Config.get('security')) {

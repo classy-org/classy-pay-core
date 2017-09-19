@@ -1,6 +1,6 @@
 {
   "name": "classy-lambda-common",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "Common configuration and tools for Classy Lambda modules.",
   "main": "index.js",
   "scripts": {
@@ -24,7 +24,7 @@
   "dependencies": {
     "bunyan": "^1.8.12",
     "bunyan-loggly": "^1.2.0",
-    "classy-node": "^2.4.3",
+    "classy-api-client": "^1.0.0",
     "classy-pay-client": "^1.0.0",
     "config-lambda": "^1.0.3",
     "credstash-lambda": "^1.0.10",
