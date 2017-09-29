@@ -22,13 +22,15 @@
   },
   "homepage": "https://github.com/jnngrm/classy-lambda-common#readme",
   "dependencies": {
+    "bugsnag": "^1.12.2",
     "bunyan": "^1.8.12",
     "bunyan-loggly": "^1.2.0",
     "classy-api-client": "^1.0.0",
     "classy-pay-client": "^1.0.0",
     "config-lambda": "^1.0.3",
     "credstash-lambda": "^1.0.10",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.4",
+    "node-uuid-v4": "^1.0.0"
   },
   "devDependencies": {
     "eslint": "^4.4.1",

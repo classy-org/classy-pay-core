@@ -1,5 +1,7 @@
 'use strict';
 const _ = require('lodash');
+const bugsnag = require("bugsnag");
+const uuid = require("node-uuid-v4");
 const _dir = process.env.LAMBDA_TASK_ROOT || process.env.PWD;
 const stage = process.env.AWS_LAMBDA_FUNCTION_NAME ?
   process.env.AWS_LAMBDA_FUNCTION_NAME.split('-')[2] : 'dev';
@@ -17,6 +19,7 @@ let Credstash = require('credstash-lambda')({
 let Common = {
   loaded: false
 };
+
 Common.load = next => {
   if (Common.loaded) {
     next();
@@ -25,6 +28,21 @@ Common.load = next => {
       if (error) {
         next(error);
       } else {
+        const options = {
+          releaseStage: stage,
+          sendCode: true,
+          metaData: {
+            revision: process.env.BB_COMMIT,
+            errorId: uuid()
+          },
+          filters: ['cvv', 'lastName', 'address1', 'address2', 'address3', 'address4', 'email', 'token',
+            'city', 'state', 'province', 'zip', 'phone', 'birth_month', 'birth_day', 'birth_year',
+            'signature', 'accountNumber', 'routingNumber', 'ssn']
+        };
+        bugsnag.register(Credstash.get("BUGSNAG_LAMBDAS_KEY"), options);
+        process.on('uncaughtException', (err) => {
+          bugsnag.notify(err);
+        });
         if (Config.get('log')) {
           Common.Logger = require('./logging')({
             level: Config.get('log.level'),
