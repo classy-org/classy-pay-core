@@ -19,7 +19,6 @@ let Credstash = require('credstash-lambda')({
 let Common = {
   loaded: false
 };
-
 Common.load = next => {
   if (Common.loaded) {
     next();
