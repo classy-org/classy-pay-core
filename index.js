@@ -38,7 +38,7 @@ Common.load = next => {
             'city', 'state', 'province', 'zip', 'phone', 'birth_month', 'birth_day', 'birth_year',
             'signature', 'accountNumber', 'routingNumber', 'ssn']
         };
-        bugsnag.register(Credstash.get("BUGSNAG_LAMBDAS_KEY"), options);
+        bugsnag.register(Config.get('BUGSNAG_LAMBDAS_KEY'), options);
         process.on('uncaughtException', (err) => {
           bugsnag.notify(err);
         });
