@@ -1,5 +1,7 @@
 'use strict';
 const _ = require('lodash');
+const bugsnag = require("bugsnag");
+const uuidv1 = require('uuid/v1');
 const _dir = process.env.LAMBDA_TASK_ROOT || process.env.PWD;
 const stage = process.env.AWS_LAMBDA_FUNCTION_NAME ?
   process.env.AWS_LAMBDA_FUNCTION_NAME.split('-')[2] : 'dev';
@@ -25,6 +27,24 @@ Common.load = next => {
       if (error) {
         next(error);
       } else {
+        const options = {
+          releaseStage: stage,
+          sendCode: true,
+          metaData: {
+            revision: process.env.BB_COMMIT,
+            errorId: uuidv1()
+          },
+          filters: ['cvv', 'lastName', 'address1', 'address2', 'address3', 'address4', 'email', 'token',
+            'city', 'state', 'province', 'zip', 'phone', 'birth_month', 'birth_day', 'birth_year',
+            'signature', 'accountNumber', 'routingNumber', 'ssn']
+        };
+        bugsnag.register(Config.get('BUGSNAG_LAMBDAS_KEY'), options);
+        process.on('uncaughtException', (err) => {
+          bugsnag.notify(err);
+        });
+        process.on('unhandledRejection', (reason, p) => {
+          bugsnag.notify(reason);
+        });
         if (Config.get('log')) {
           Common.Logger = require('./logging')({
             level: Config.get('log.level'),
