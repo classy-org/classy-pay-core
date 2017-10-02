@@ -41,6 +41,11 @@ Common.load = next => {
         bugsnag.register(Config.get('BUGSNAG_LAMBDAS_KEY'), options);
         process.on('uncaughtException', (err) => {
           bugsnag.notify(err);
+          console.log('Uncaught exception:', err);
+        });
+        process.on('unhandledRejection', (reason, p) => {
+          bugsnag.notify(reason);
+          console.log('Unhandled Rejection at:', p, 'reason:', reason);
         });
         if (Config.get('log')) {
           Common.Logger = require('./logging')({
