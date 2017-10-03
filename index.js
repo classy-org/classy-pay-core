@@ -39,6 +39,9 @@ Common.load = next => {
             'signature', 'accountNumber', 'routingNumber', 'ssn']
         };
         bugsnag.register(Config.get('BUGSNAG_LAMBDAS_KEY'), options);
+        for (let x of process.listeners('uncaughtException')) {
+          process.removeListener('uncaughtException', x);
+        }
         process.on('uncaughtException', (err) => {
           bugsnag.notify(err);
         });
