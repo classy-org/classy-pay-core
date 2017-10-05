@@ -24,7 +24,7 @@
   "dependencies": {
     "bugsnag": "^1.12.2",
     "bunyan": "^1.8.12",
-    "bunyan-loggly": "^1.2.0",
+    "bunyan-loggly": "1.2.0",
     "classy-api-client": "^1.0.0",
     "classy-pay-client": "^1.0.0",
     "config-lambda": "^1.0.3",
