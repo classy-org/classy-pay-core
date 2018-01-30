@@ -27,10 +27,7 @@ Common.load = next => {
       } else {
         if (Config.get('log')) {
           Common.Logger = require('./logging')({
-            level: Config.get('log.level'),
-            token: Config.get('LOG_LOGGLY_TOKEN'),
-            subdomain: Config.get('log.loggly.subdomain'),
-            tags: Config.get('log.loggly.tags')
+            level: Config.get('log.level')
           });
         }
         if (Config.get('pay')) {
