@@ -1,6 +1,6 @@
 'use strict';
 const _ = require('lodash');
-const bugsnag = require("bugsnag");
+const bugsnag = require('bugsnag');
 const uuidv1 = require('uuid/v1');
 const _dir = process.env.LAMBDA_TASK_ROOT || process.env.PWD;
 const stage = process.env.AWS_LAMBDA_FUNCTION_NAME ?

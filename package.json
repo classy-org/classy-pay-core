@@ -1,6 +1,6 @@
 {
   "name": "classy-lambda-common",
-  "version": "1.0.29",
+  "version": "1.0.30",
   "description": "Common configuration and tools for Classy Lambda modules.",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/jnngrm/classy-lambda-common#readme",
   "dependencies": {
-    "bugsnag": "^1.12.2",
+    "bugsnag": "^2.1.3",
     "bunyan": "^1.8.12",
     "classy-api-client": "latest",
     "classy-pay-client": "latest",
