@@ -60,3 +60,6 @@ typings/
 environment.json
 creds.json
 creds.example.json
+
+# IntelliJ Files
+.idea/
