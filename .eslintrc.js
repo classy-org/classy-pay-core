@@ -20,6 +20,7 @@ module.exports = {
   "rules": {
     "require-jsdoc": 0, // require JSDoc comments,
     "comma-dangle": 0, // enforce trailing commas,
-    "arrow-parens": 0 // enforce parens arround single arg arrow fcts
+    "arrow-parens": 0, // enforce parens arround single arg arrow fcts
+    "max-len": 0 // newsflash: computers have more than 80 columns now
   }
 };

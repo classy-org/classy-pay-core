@@ -2,8 +2,12 @@
   "name": "classy-lambda-common",
   "version": "1.0.30",
   "description": "Common configuration and tools for Classy Lambda modules.",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
+    "build": "babel --out-dir lib src --source-maps",
+    "testbuild": "yarn run build && babel --copy-files --source-maps --out-dir testlib test",
+    "prepublish": "yarn run clean; yarn run build",
+    "clean": "rm -rfv lib testlib",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -26,13 +30,21 @@
     "bunyan": "^1.8.12",
     "classy-api-client": "latest",
     "classy-pay-client": "latest",
-    "config-lambda": "latest",
-    "credstash-lambda": "latest",
     "lodash": "^4.17.5",
+    "nodecredstash": "^2.0.2",
+    "regenerator-runtime": "^0.11.1",
+    "source-map-support": "^0.5.4",
     "uuid": "^3.2.1"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-syntax-async-functions": "^6.13.0",
+    "babel-plugin-transform-regenerator": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
     "eslint": "^4.17.0",
     "eslint-config-google": "^0.9.1"
-  }
+  },
+  "files": [
+    "lib"
+  ]
 }
