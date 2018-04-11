@@ -5,47 +5,48 @@ const Once = require('./utils/Once');
 const _ = require('lodash');
 const bugsnag = require('bugsnag');
 const uuidv1 = require('uuid/v1');
-const LambdaContext = require('./utils/LambdaContext');
 const Config = require('./Config');
 
 module.exports = {
   initialize: function() {
-    this.once = new Once(async () => {
-      // Set up configuration dict
-      this.config = new Config([
-        require('./DataSources/Environment'),
-        require('./DataSources/Credstash'),
-        require('./DataSources/Clients'),
-        require('./DataSources/Logging'),
-        require('./DataSources/Replacer')
-      ]);
+    if (!this.once) {
+      this.once = new Once(async () => {
+        // Set up configuration dict
+        this.config = new Config([
+          require('./DataSources/Environment'),
+          require('./DataSources/Credstash'),
+          require('./DataSources/Clients'),
+          require('./DataSources/Logging'),
+          require('./DataSources/Replacer')
+        ]);
 
-      // Needed until we are only async/await
-      await this.config.legacy().initialize();
+        // Needed until we are only async/await
+        await this.config.legacy().initialize();
 
-      // Set up bugsnag
-      const options = {
-        releaseStage: LambdaContext.stage,
-        sendCode: true,
-        metaData: {
-          revision: process.env.BB_COMMIT,
-          errorId: uuidv1()
-        },
-        filters: ['cvv', 'lastName', 'address1', 'address2', 'address3', 'address4', 'email', 'token',
-        'city', 'state', 'province', 'zip', 'phone', 'birth_month', 'birth_day', 'birth_year',
-        'signature', 'accountNumber', 'routingNumber', 'ssn']
-      };
-      for (let x of process.listeners('uncaughtException')) {
-        process.removeListener('uncaughtException', x);
-      }
-      bugsnag.register(await this.config.get('BUGSNAG_LAMBDAS_KEY'), options);
-      process.on('uncaughtException', (err) => {
-        bugsnag.notify(err);
+        // Set up bugsnag
+        const options = {
+          releaseStage: await this.config.get('stage'),
+          sendCode: true,
+          metaData: {
+            revision: process.env.BB_COMMIT,
+            errorId: uuidv1()
+          },
+          filters: ['cvv', 'lastName', 'address1', 'address2', 'address3', 'address4', 'email', 'token',
+          'city', 'state', 'province', 'zip', 'phone', 'birth_month', 'birth_day', 'birth_year',
+          'signature', 'accountNumber', 'routingNumber', 'ssn']
+        };
+        for (let x of process.listeners('uncaughtException')) {
+          process.removeListener('uncaughtException', x);
+        }
+        bugsnag.register(await this.config.get('BUGSNAG_LAMBDAS_KEY'), options);
+        process.on('uncaughtException', (err) => {
+          bugsnag.notify(err);
+        });
+        process.on('unhandledRejection', (reason, p) => {
+          bugsnag.notify(reason);
+        });
       });
-      process.on('unhandledRejection', (reason, p) => {
-        bugsnag.notify(reason);
-      });
-    });
+    }
     return this.once.do();
   },
 
@@ -66,8 +67,6 @@ module.exports = {
     return {
       load: next => {
         this.initialize().then(() => {
-           return this.config.legacy().initialize();
-         }).then(() => {
           _.defer(next);
         }).catch(error => {
           _.defer(next, error);

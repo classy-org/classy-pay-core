@@ -14,8 +14,10 @@ class DataSourceManager {
 
   _init() {
     if (!this.once) {
+      this.initializing = true;
       this.once = new Once(async () => {
         await this.dataSource.initialize(this.config);
+        this.initializing = false;
       });
     }
     return this.once.do();

@@ -1,7 +1,7 @@
 'use strict';
 require('regenerator-runtime/runtime');
-const _ = require('lodash');
 const DataSourceManager = require('./DataSourceManager');
+const Once = require('./utils/once');
 
 class Config {
   constructor(dataSources) {
@@ -13,6 +13,11 @@ class Config {
 
   async get(key) {
     for (let dataSourceManager of this.dataSourceManagers) {
+      if (dataSourceManager.initializing) {
+        // Abort in cases where a data source pulls from config in
+        // initialization then reaches the currently-initializing data source.
+        return null;
+      }
       let value = await dataSourceManager.get(key);
       if (value) {
         return value;
@@ -25,13 +30,14 @@ class Config {
     return {
       initialize: () => {
         if (!this.initialization) {
-          this.initialization = Promise.all(_.map(this.dataSourceManagers, dataSourceManager => {
-            return dataSourceManager.legacy().initialize();
-          })).then(() => {
+          this.initialization = new Once(async () => {
+            for (let dataSourceManager of this.dataSourceManagers) {
+              await dataSourceManager.legacy().initialize();
+            }
             this.initializationDone = true;
           });
         }
-        return this.initialization;
+        return this.initialization.do();
       },
       get: (key) => {
         if (!this.initializationDone) {

@@ -2,15 +2,14 @@
 require('regenerator-runtime/runtime');
 const Credstash = require('nodecredstash');
 const _ = require('lodash');
-const LambdaContext = require('../utils/LambdaContext');
 
 class CredstashDataSource {
   async initialize(config) {
-    this.table = [LambdaContext.stage, 'pay', 'credstash'].join('-');
+    this.table = [await config.get('stage'), 'pay', 'credstash'].join('-');
     this.region = await config.get('aws.region');
-    this.keys = _.keys(require(`${LambdaContext.dir}/creds.example.json`));
-    this.defaults = require('fs').existsSync(`${LambdaContext.dir}/creds.json`) ? require(`${LambdaContext.dir}/creds.json`) : null;
-    this.secrets = config.default;
+    this.keys = _.keys(require(`${await config.get('dir')}/creds.example.json`));
+    this.defaults = require('fs').existsSync(`${await config.get('dir')}/creds.json`) ? require(`${await config.get('dir')}/creds.json`) : null;
+    this.secrets = await config.get('defaultSecrets');
 
     let loadingSecrets = {};
     let credstash = new Credstash({
