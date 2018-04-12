@@ -51,20 +51,27 @@ module.exports = {
   },
 
   async: function() {
-    return {
-      get: async () => {
+    return new Proxy({
+      get: async (key) => {
         await this.initialize();
         const value = _.get(this, key, null);
         if (value) {
           return value;
         }
-        return await Config.get(key);
+        return await this.config.get(key);
       }
-    };
+    }, {
+      get: function(obj, prop) {
+        if (prop in obj) {
+          return obj[prop];
+        }
+        return obj.get(prop);
+      }
+    });
   },
 
   legacy: function() {
-    return {
+    return new Proxy({
       load: next => {
         this.initialize().then(() => {
           _.defer(next);
@@ -83,7 +90,14 @@ module.exports = {
         }
         return this.config.legacy().get(key);
       }
-    };
+    }, {
+      get: function(obj, prop) {
+        if (prop in obj) {
+          return obj[prop];
+        }
+        return obj.get(prop);
+      }
+    });
   },
 
   load: function(next) {
