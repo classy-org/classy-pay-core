@@ -57,6 +57,12 @@ typings/
 # dotenv environment variables file
 .env
 
-environment.json
+/environment.json
 creds.json
 creds.example.json
+
+.idea
+
+lib/
+testlib/
+

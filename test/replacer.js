@@ -1,4 +1,5 @@
 'use strict';
+require('source-map-support').install();
 const Common = require('../index.js');
 let log;
 let replacer;
