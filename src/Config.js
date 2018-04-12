@@ -1,7 +1,7 @@
 'use strict';
 require('regenerator-runtime/runtime');
 const DataSourceManager = require('./DataSourceManager');
-const Once = require('./utils/once');
+const Once = require('./utils/Once');
 
 class Config {
   constructor(dataSources) {
