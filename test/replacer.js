@@ -1,6 +1,6 @@
 'use strict';
 require('source-map-support').install();
-const Common = require('../index.js');
+const Common = require('../lib/index.js');
 let log;
 let replacer;
 Common.load(function(error) {

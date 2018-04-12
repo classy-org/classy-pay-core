@@ -21,7 +21,7 @@ class ReplacerDataSource {
   }
 
   get(key) {
-    return key === 'replacer' ? this.replacer : null;
+    return key === 'Replacer' ? this.replacer : null;
   }
 }
 
