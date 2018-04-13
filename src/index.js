@@ -59,6 +59,9 @@ module.exports = {
           return value;
         }
         return await this.config.get(key);
+      },
+      submodule: (name) => {
+        return require(`./${name}`);
       }
     }, {
       get: function(obj, prop) {
@@ -89,6 +92,9 @@ module.exports = {
           return value;
         }
         return this.config.legacy().get(key);
+      },
+      submodule: (name) => {
+        return require(`./${name}`);
       }
     }, {
       get: function(obj, prop) {
