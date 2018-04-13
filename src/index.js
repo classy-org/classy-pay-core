@@ -61,7 +61,7 @@ module.exports = {
         return await this.config.get(key);
       },
       submodule: (name) => {
-        return require(`./${name}`);
+        return this.submodule(name);
       }
     }, {
       get: function(obj, prop) {
@@ -94,7 +94,7 @@ module.exports = {
         return this.config.legacy().get(key);
       },
       submodule: (name) => {
-        return require(`./${name}`);
+        return this.submodule(name);
       }
     }, {
       get: function(obj, prop) {
@@ -114,5 +114,9 @@ module.exports = {
   get: function(key) {
     // Currently maps to legacy function
     return this.legacy().get(key);
+  },
+
+  submodule: (name) => {
+    return require(`./${name}`);
   }
 };
