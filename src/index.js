@@ -51,7 +51,7 @@ module.exports = {
   },
 
   async: function() {
-    return new Proxy({
+    return {
       get: async (key) => {
         await this.initialize();
         const value = _.get(this, key, null);
@@ -63,18 +63,11 @@ module.exports = {
       submodule: (name) => {
         return this.submodule(name);
       }
-    }, {
-      get: function(obj, prop) {
-        if (prop in obj) {
-          return obj[prop];
-        }
-        return obj.get(prop);
-      }
-    });
+    };
   },
 
   legacy: function() {
-    return new Proxy({
+    return {
       load: next => {
         this.initialize().then(() => {
           _.defer(next);
@@ -96,14 +89,7 @@ module.exports = {
       submodule: (name) => {
         return this.submodule(name);
       }
-    }, {
-      get: function(obj, prop) {
-        if (prop in obj) {
-          return obj[prop];
-        }
-        return obj.get(prop);
-      }
-    });
+    };
   },
 
   load: function(next) {
