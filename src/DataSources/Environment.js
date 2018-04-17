@@ -15,6 +15,8 @@ class EnvironmentDataSource {
       this.stage = 'dev';
     }
 
+    this.dryRun = process.env.DRYRUN ? Boolean(process.env.DRYRUN) : false;
+
     this.environment = environments[this.stage];
   }
 
@@ -24,6 +26,8 @@ class EnvironmentDataSource {
         return this.dir;
       case 'stage':
         return this.stage;
+      case 'dryRun':
+        return this.dryRun;
       default:
         return _.get(this.environment, key, null);
     }

@@ -52,13 +52,16 @@ module.exports = {
 
   async: function() {
     return {
-      get: async () => {
+      get: async (key) => {
         await this.initialize();
         const value = _.get(this, key, null);
         if (value) {
           return value;
         }
-        return await Config.get(key);
+        return await this.config.get(key);
+      },
+      submodule: (name) => {
+        return this.submodule(name);
       }
     };
   },
@@ -82,6 +85,9 @@ module.exports = {
           return value;
         }
         return this.config.legacy().get(key);
+      },
+      submodule: (name) => {
+        return this.submodule(name);
       }
     };
   },
@@ -94,5 +100,9 @@ module.exports = {
   get: function(key) {
     // Currently maps to legacy function
     return this.legacy().get(key);
+  },
+
+  submodule: (name) => {
+    return require(`./${name}`);
   }
 };

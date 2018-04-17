@@ -8,20 +8,20 @@ class ClientDataSource {
 
     if (await config.get('pay')) {
       this.clients.PayClient = require('classy-pay-client')({
-        apiUrl: config.get('pay.apiUrl'),
-        timeout: config.get('pay.timeout'),
-        token: config.get('PAY_TOKEN'),
-        secret: config.get('PAY_SECRET')
+        apiUrl: await config.get('pay.apiUrl'),
+        timeout: await config.get('pay.timeout'),
+        token: await config.get('PAY_TOKEN'),
+        secret: await config.get('PAY_SECRET')
       });
     }
 
     if (await config.get('api')) {
       this.clients.ApiClient = require('classy-api-client')({
-        clientId: config.get('APIV2_CLIENT_ID'),
-        clientSecret: config.get('APIV2_CLIENT_SECRET'),
-        timeout: config.get('api.timeout'),
-        oauthUrl: config.get('api.oauthUrl'),
-        apiUrl: config.get('api.apiUrl')
+        clientId: await config.get('APIV2_CLIENT_ID'),
+        clientSecret: await config.get('APIV2_CLIENT_SECRET'),
+        timeout: await config.get('api.timeout'),
+        oauthUrl: await config.get('api.oauthUrl'),
+        apiUrl: await config.get('api.apiUrl')
       });
     }
   }

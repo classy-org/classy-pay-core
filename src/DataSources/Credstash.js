@@ -11,31 +11,33 @@ class CredstashDataSource {
     this.defaults = require('fs').existsSync(`${await config.get('dir')}/creds.json`) ? require(`${await config.get('dir')}/creds.json`) : null;
     this.secrets = await config.get('defaultSecrets');
 
-    let loadingSecrets = {};
-    let credstash = new Credstash({
-      table: this.table,
-      awsOpts: {
-        region: this.region
+    if (await config.get('stage') !== 'dev') {
+      let loadingSecrets = {};
+      let credstash = new Credstash({
+        table: this.table,
+        awsOpts: {
+          region: this.region
+        }
+      });
+
+      function stringToBool(result) {
+        return (result === 'true' || result === 'false') ? result === 'true' : result;
       }
-    });
 
-    function stringToBool(result) {
-      return (result === 'true' || result === 'false') ? result === 'true' : result;
-    }
-
-    for (let i = 0; i < this.keys.length; i++) {
-      const key = this.keys[i];
-      try {
-        let secret = await credstash.getSecret({name: key});
-        loadingSecrets[key] = stringToBool(secret);
-      } catch (error) {
-        const containingError = new Error(`Unable to load key "${key}" from credstash`);
-        containingError.originalError = error;
-        throw containingError;
+      for (let i = 0; i < this.keys.length; i++) {
+        const key = this.keys[i];
+        try {
+          let secret = await credstash.getSecret({name: key});
+          loadingSecrets[key] = stringToBool(secret);
+        } catch (error) {
+          const containingError = new Error(`Unable to load key "${key}" from credstash`);
+          containingError.originalError = error;
+          throw containingError;
+        }
       }
-    }
 
-    this.secrets = _.merge(this.secrets, loadingSecrets);
+      this.secrets = _.merge(this.secrets, loadingSecrets);
+    }
   }
 
   get(key) {
