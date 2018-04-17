@@ -5,10 +5,10 @@ const Common = require('./index');
 
 let bugsnag;
 
-module.exports = (handler) => {
+module.exports = (handler, appName) => {
   return async (event, context) => {
     if (!bugsnag) {
-      bugsnag = await require('./utils/bugsnagFactory')();
+      bugsnag = await require('./utils/bugsnagFactory')(appName);
     }
     try {
       let result = await handler(event, context, Common.async());
