@@ -1,5 +1,4 @@
 'use strict';
-require('regenerator-runtime/runtime');
 const bunyan = require('bunyan');
 
 class LoggingDataSource {

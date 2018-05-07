@@ -1,7 +1,5 @@
 'use strict';
-require('regenerator-runtime/runtime');
 const DataSourceManager = require('./DataSourceManager');
-const Once = require('./utils/Once');
 
 class Config {
   constructor(dataSources) {
@@ -24,35 +22,6 @@ class Config {
       }
     }
     return null;
-  }
-
-  legacy() {
-    return {
-      initialize: () => {
-        if (!this.initialization) {
-          this.initialization = new Once(async () => {
-            for (let dataSourceManager of this.dataSourceManagers) {
-              await dataSourceManager.legacy().initialize();
-            }
-            this.initializationDone = true;
-          });
-        }
-        return this.initialization.do();
-      },
-      get: (key) => {
-        if (!this.initializationDone) {
-          throw Error('You must call Config.legacy().initialize() first before using legacyGet()');
-        }
-
-        for (let dataSourceManager of this.dataSourceManagers) {
-          let value = dataSourceManager.legacy().get(key);
-          if (value) {
-            return value;
-          }
-        }
-        return null;
-      }
-    };
   }
 };
 

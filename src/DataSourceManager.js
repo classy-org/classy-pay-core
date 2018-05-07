@@ -1,5 +1,4 @@
 'use strict';
-require('regenerator-runtime/runtime');
 const Once = require('./utils/Once');
 
 class DataSourceManager {
@@ -26,20 +25,6 @@ class DataSourceManager {
   async get(key) {
     await this._init();
     return this.dataSource.get(key);
-  }
-
-  legacy() {
-    return {
-      initialize: () => {
-        return this._init();
-      },
-      get: key => {
-        if (!this.once.done) {
-          throw new Error('Cannot call legacy().get() before calling legacy().initialize()');
-        }
-        return this.dataSource.get(key);
-      }
-    };
   }
 }
 

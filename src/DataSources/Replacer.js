@@ -1,5 +1,4 @@
 'use strict';
-require('regenerator-runtime/runtime');
 
 class ReplacerDataSource {
   async initialize(config) {

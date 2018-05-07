@@ -2,13 +2,9 @@
   "name": "classy-lambda-common",
   "version": "2.0.4",
   "description": "Common configuration and tools for Classy Lambda modules.",
-  "main": "lib/index.js",
+  "main": "src/index.js",
   "scripts": {
-    "build": "babel --out-dir lib src --source-maps",
-    "testbuild": "yarn run build && babel --copy-files --source-maps --out-dir testlib test",
-    "prepublish": "yarn run clean; yarn run build",
-    "clean": "rm -rfv lib testlib",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/istanbul/lib/cli.js cover _mocha test/**/test*.js"
   },
   "repository": {
     "type": "git",
@@ -37,14 +33,14 @@
     "uuid": "^3.2.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-plugin-syntax-async-functions": "^6.13.0",
-    "babel-plugin-transform-regenerator": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
     "eslint": "^4.17.0",
-    "eslint-config-google": "^0.9.1"
-  },
-  "files": [
-    "lib"
-  ]
+    "eslint-config-google": "^0.9.1",
+    "istanbul": "1.1.0-alpha.1",
+    "mocha": "^5.1.1",
+    "mocha-cli": "^1.0.1",
+    "rewire": "^4.0.1",
+    "should": "^13.2.1",
+    "should-sinon": "^0.0.6",
+    "sinon": "^5.0.7"
+  }
 }

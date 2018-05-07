@@ -1,5 +1,4 @@
 'use strict';
-require('regenerator-runtime/runtime');
 const _ = require('lodash');
 
 class EnvironmentDataSource {
