@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/jnngrm/classy-lambda-common#readme",
   "dependencies": {
+    "bluebird": "^3.5.1",
     "bugsnag": "^2.1.3",
     "bunyan": "^1.8.12",
     "classy-api-client": "latest",
@@ -29,6 +30,7 @@
     "lodash": "^4.17.5",
     "nodecredstash": "^2.0.2",
     "regenerator-runtime": "^0.11.1",
+    "requestretry": "^1.13.0",
     "source-map-support": "^0.5.4",
     "uuid": "^3.2.1"
   },
