@@ -8,7 +8,7 @@ const handlerGenerator = (handler, appName) => {
   let config;
 
   return async (event, context) => {
-    if (!awsConfig) {
+    if (!config) {
       config = new AWSConfig();
     }
     if (!bugsnag) {
