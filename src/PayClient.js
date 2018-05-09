@@ -51,10 +51,6 @@ class PayClient {
    * @return {Object} the options for the request
    */
   getOptions(appId, method, resource, payload, params) {
-    if (params && params['appId']) {
-      throw new Error('Query parameters cannot contain appId');
-    }
-
     return {
       method,
       url: `${this.apiUrl}${resource}`,
@@ -84,7 +80,8 @@ class PayClient {
     if (!resource.match(/^\/[\/A-Za-z0-9]*$/)) {
       throw new Error(`Invalid resource: ${resource}`);
     }
-    const response = await req(this.getOptions(appId, method, resource, payload, params));
+    let options = this.getOptions(appId, method, resource, payload, params);
+    const response = await req(options);
     const status = _.get(response, 'statusCode');
     if (status != 200) {
       throw new Error(`Server returned error code ${status} from ${method} ${resource}: ${response.body}`);
@@ -124,10 +121,7 @@ class PayClient {
   async forList(appId, resource) {
     const max = (await this.request(appId, 'GET', `${resource}/count`)).object.count;
     const results = await Promise.map(_.range(0, max, PAGE_LIMIT),
-      async page => (await this.request(appId, 'GET', resource, null, {
-          limit: PAGE_LIMIT,
-          offset: page,
-        })).object, {
+      async page => (await this.request(appId, 'GET', resource, null, {limit: PAGE_LIMIT, offset: page})).object, {
         concurrency: 10,
       });
     return _.flatten(results);
