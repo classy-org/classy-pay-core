@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 class Once {
   constructor(f) {
     this.done = false;
@@ -5,7 +7,11 @@ class Once {
       this.done = true;
     }).catch(error => {
       console.error(`Fatal exception caught: ${error}`);
-      throw error;
+
+      // Throw error outside of promise
+      _.defer(() => {
+        throw error;
+      });
     });
   }
 
