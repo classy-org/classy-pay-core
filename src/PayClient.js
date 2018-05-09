@@ -1,5 +1,5 @@
 const Promise = require('bluebird');
-const req = require('requestretry');
+const req = require('request-promise');
 const _ = require('lodash');
 const hmac256AuthSigner = require('./utils/hmac256AuthSigner');
 
@@ -62,6 +62,7 @@ class PayClient {
       body: payload ? JSON.stringify(payload) : null,
       timeout: this.config.timeout,
       headers: this.getHeaders(method, resource, payload),
+      resolveWithFullResponse: true,
     };
   }
 
