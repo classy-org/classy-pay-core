@@ -11,9 +11,8 @@ class Config {
 
   async get(key) {
     for (let dataSourceManager of this.dataSourceManagers) {
-      if (dataSourceManager.initializing) {
-        // Abort in cases where a data source pulls from config in
-        // initialization then reaches the currently-initializing data source.
+      if (dataSourceManager.querying) {
+        // Data sources should not be able to call get reentrant
         return null;
       }
       let value = await dataSourceManager.get(key);

@@ -1,5 +1,5 @@
 'use strict';
-const Once = require('./utils/Once');
+const Lock = require('./utils/Lock');
 
 class DataSourceManager {
   constructor(dataSource, config) {
@@ -7,24 +7,30 @@ class DataSourceManager {
       throw new Error('Cannot construct DataSourceManager with null data source');
     }
 
+    this.lock = new Lock();
     this.dataSource = dataSource;
     this.config = config;
+    this.initialized = false;
+    this.querying = false;
   }
 
-  _init() {
-    if (!this.once) {
-      this.initializing = true;
-      this.once = new Once(async () => {
-        await this.dataSource.initialize(this.config);
-        this.initializing = false;
-      });
+  async _init() {
+    if (!this.initialized) {
+      await this.dataSource.initialize(this.config);
+      this.initialized = true;
     }
-    return this.once.do();
   }
 
   async get(key) {
-    await this._init();
-    return this.dataSource.get(key);
+    return this.lock.lockForPath(async () => {
+      this.querying = true;
+      try {
+        await this._init();
+        return this.dataSource.get(key);
+      } finally {
+        this.querying = false;
+      }
+    });
   }
 }
 
