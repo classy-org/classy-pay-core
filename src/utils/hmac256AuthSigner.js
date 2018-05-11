@@ -1,4 +1,7 @@
 'use strict';
+require('regenerator-runtime/runtime');
+require('source-map-support').install();
+
 const crypto = require('crypto');
 
 module.exports = (service, token, secret) => {

@@ -2,7 +2,7 @@ const sinon = require('sinon');
 const should = require('should');
 require('should-sinon');
 const rewire = require('rewire');
-const bugsnagFactory = rewire('../../src/utils/bugsnagFactory');
+const bugsnagFactory = rewire(`../../src/utils/bugsnagFactory`);
 
 describe('Bugsnag Factory', () => {
   let revert;

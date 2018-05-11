@@ -1,4 +1,6 @@
 'use strict';
+require('regenerator-runtime/runtime');
+require('source-map-support').install();
 
 const AWSConfig = require('./AWSConfig');
 const bugsnagFactory = require('../utils/bugsnagFactory');

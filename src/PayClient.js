@@ -1,3 +1,7 @@
+'use strict';
+require('regenerator-runtime/runtime');
+require('source-map-support').install();
+
 const Promise = require('bluebird');
 const req = require('request-promise');
 const _ = require('lodash');
