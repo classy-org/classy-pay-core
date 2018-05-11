@@ -1,7 +1,7 @@
 {
-  "name": "classy-lambda-common",
-  "version": "2.0.4",
-  "description": "Common configuration and tools for Classy Lambda modules.",
+  "name": "classy-pay-core",
+  "version": "0.0.1",
+  "description": "Shared tools used in ClassyPay-related projects",
   "main": "lib/index.js",
   "scripts": {
     "test": "./node_modules/istanbul/lib/cli.js cover _mocha test/**/test*.js",
@@ -12,19 +12,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jnngrm/classy-lambda-common.git"
+    "url": "https://github.com/brownjava/classy-pay-core.git"
   },
   "keywords": [
     "classy",
-    "lambda",
-    "common"
+    "pay",
+    "core"
   ],
-  "author": "jingram@classy.org",
+  "author": "jeremy@brownjava.org",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jnngrm/classy-lambda-common/issues"
+    "url": "https://github.com/brownjava/classy-pay-core/issues"
   },
-  "homepage": "https://github.com/jnngrm/classy-lambda-common#readme",
+  "homepage": "https://github.com/brownjava/classy-pay-core",
   "dependencies": {
     "bluebird": "^3.5.1",
     "bugsnag": "^2.1.3",
