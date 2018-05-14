@@ -6,20 +6,18 @@ const bunyan = require('bunyan');
 
 class LoggingDataSource {
   async initialize(config) {
-    if (await config.get('log')) {
-      const level = await config.get('log.level');
-      this.Logger = {
-        create: (name) => {
-          return bunyan.createLogger({
-            name: name,
-            level: level || 'info',
-            streams: [{
-              stream: process.stdout
-            }]
-          });
-        }
-      };
-    }
+    const level = await config.get('log.level');
+    this.Logger = {
+      create: (name) => {
+        return bunyan.createLogger({
+          name: name,
+          level: level || 'info',
+          streams: [{
+            stream: process.stdout
+          }]
+        });
+      }
+    };
   }
 
   get(key) {
