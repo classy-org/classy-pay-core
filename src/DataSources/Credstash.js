@@ -45,6 +45,10 @@ class CredstashDataSource {
   get(key) {
     return _.get(this.secrets, key, null);
   }
+
+  name() {
+    return 'Credstash';
+  }
 }
 
 module.exports = new CredstashDataSource;

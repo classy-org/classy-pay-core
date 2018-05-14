@@ -32,6 +32,10 @@ class ClientDataSource {
   get(key) {
     return _.get(this.clients, _.camelCase(key), null);
   }
+
+  name() {
+    return 'Clients';
+  }
 }
 
 module.exports = new ClientDataSource;

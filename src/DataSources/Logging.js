@@ -25,6 +25,10 @@ class LoggingDataSource {
   get(key) {
     return key === 'Logger' ? this.Logger : undefined;
   }
+
+  name() {
+    return 'Logging';
+  }
 }
 
 module.exports = new LoggingDataSource;

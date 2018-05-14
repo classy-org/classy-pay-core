@@ -37,6 +37,10 @@ class EnvironmentDataSource {
       return this.dir;
     }
   }
+
+  name() {
+    return 'Environment';
+  }
 }
 
 module.exports = new EnvironmentDataSource;

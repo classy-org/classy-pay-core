@@ -25,7 +25,7 @@ class DataSourceManager {
   }
 
   async get(key) {
-    return this.lock.lockForPath(async () => {
+    return await this.lock.lockForPath(async () => {
       this.querying = true;
       try {
         await this._init();

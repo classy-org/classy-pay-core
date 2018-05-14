@@ -2,7 +2,6 @@
 require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
-const _ = require('lodash');
 const Config = require('../Config');
 
 class AWSConfig extends Config {

@@ -24,6 +24,10 @@ class ReplacerDataSource {
   get(key) {
     return key === 'Replacer' ? this.replacer : null;
   }
+
+  name() {
+    return 'Replacer';
+  }
 }
 
 module.exports = new ReplacerDataSource;
