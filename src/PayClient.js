@@ -81,7 +81,7 @@ class PayClient {
     if (!_.isString(appId)) {
       throw new Error('App ID must be provided as string to avoid losing precision');
     }
-    if (!resource.match(/^\/[\/A-Za-z0-9]*$/)) {
+    if (!resource.match(/^\/[\/A-Za-z0-9\\-]*$/)) {
       throw new Error(`Invalid resource: ${resource}`);
     }
     let options = this.getOptions(appId, method, resource, payload, params);
