@@ -11,7 +11,7 @@ const handlerGenerator = (handler, appName) => {
 
   return async (event, context) => {
     if (!config) {
-      config = new AWSConfig();
+      config = new AWSConfig(appName);
     }
     if (!bugsnag) {
       bugsnag = await bugsnagFactory(appName, await config.get('BUGSNAG_LAMBDAS_KEY'), await config.get('stage'));

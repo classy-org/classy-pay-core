@@ -5,8 +5,9 @@ require('source-map-support').install();
 const Config = require('../Config');
 
 class AWSConfig extends Config {
-  constructor() {
+  constructor(appName) {
     super([
+      require('../DataSources/Name')(appName),
       require('../DataSources/Environment'),
       require('../DataSources/Credstash'),
       require('../DataSources/Clients'),

@@ -6,18 +6,17 @@ const bunyan = require('bunyan');
 
 class LoggingDataSource {
   async initialize(config) {
-    const level = await config.get('log.level');
-    this.Logger = {
-      create: (name) => {
-        return bunyan.createLogger({
-          name: name,
-          level: level || 'info',
-          streams: [{
-            stream: process.stdout
-          }]
-        });
-      }
-    };
+    const name = await config.get('name');
+    if (!name) {
+      throw new Error('LoggingDataSource requires that another data source provide a \'name\' configuration');
+    }
+    this.Logger = bunyan.createLogger({
+      name,
+      level: await config.get('log.level') || 'info',
+      streams: [{
+        stream: process.stdout
+      }]
+    });
   }
 
   get(key) {
