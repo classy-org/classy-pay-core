@@ -41,7 +41,7 @@ class EnvironmentDataSource {
     this.environment = environment;
   }
 
-  get(key) {
+  async get(key) {
     switch (key) {
       case 'dir':
         return this.dir;

@@ -19,7 +19,7 @@ class LoggingDataSource {
     });
   }
 
-  get(key) {
+  async get(key) {
     return key === 'Logger' ? this.Logger : undefined;
   }
 

@@ -13,7 +13,7 @@ class NameDataSource {
   async initialize(config) {
   }
 
-  get(key) {
+  async get(key) {
     return key === 'name' ? this.name : undefined;
   }
 
