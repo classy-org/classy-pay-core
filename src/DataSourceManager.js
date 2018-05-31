@@ -15,6 +15,7 @@ class DataSourceManager {
     this.config = config;
     this.initialized = false;
     this.querying = false;
+    this.cache = {values: {}, missing: {}};
   }
 
   async _init() {
@@ -29,7 +30,15 @@ class DataSourceManager {
       this.querying = true;
       try {
         await this._init();
-        return this.dataSource.get(key);
+        if (!(key in this.cache.values || key in this.cache.missing)) {
+          const value = await this.dataSource.get(key);
+          if (value) {
+            this.cache.values[key] = value;
+          } else {
+            this.cache.missing[key] = true;
+          }
+        }
+        return this.cache.values[key];
       } finally {
         this.querying = false;
       }

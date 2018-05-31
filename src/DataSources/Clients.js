@@ -29,7 +29,7 @@ class ClientDataSource {
     }
   }
 
-  get(key) {
+  async get(key) {
     return _.get(this.clients, _.camelCase(key), null);
   }
 

@@ -21,7 +21,7 @@ class ReplacerDataSource {
     }
   }
 
-  get(key) {
+  async get(key) {
     return key === 'Replacer' ? this.replacer : null;
   }
 
