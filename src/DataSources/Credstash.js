@@ -3,9 +3,8 @@ require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
 const Credstash = require('nodecredstash');
-const _ = require('lodash');
 
-const isCredstashKey = key => /^[A-Z_]+$/.test(key);
+const isCredstashKey = key => /^[A-Z0-9_]+$/.test(key);
 const stringToBool = result => (result === 'true' || result === 'false') ? result === 'true' : result;
 
 class CredstashDataSource {
