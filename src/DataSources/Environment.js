@@ -1,11 +1,14 @@
 'use strict';
 require('regenerator-runtime/runtime');
+require('source-map-support').install();
+
 const _ = require('lodash');
+const yamljs = require('yamljs');
+const fs = require('fs');
 
 class EnvironmentDataSource {
   async initialize() {
     this.dir = process.env.LAMBDA_TASK_ROOT || process.env.PWD;
-    const environments = require(`${this.dir}/environment.json`);
 
     if (process.env.STAGE) {
       this.stage = process.env.STAGE;
@@ -17,10 +20,28 @@ class EnvironmentDataSource {
 
     this.dryRun = process.env.DRYRUN ? Boolean(process.env.DRYRUN) : false;
 
-    this.environment = environments[this.stage];
+    let environment = {};
+
+    const envJSONFile = `${this.dir}/environment.json`;
+    if (fs.existsSync(envJSONFile)) {
+      const jsonEnvironments = require(envJSONFile);
+      if (jsonEnvironments) {
+        _.merge(environment, jsonEnvironments[this.stage]);
+      }
+    }
+
+    const envYAMLFile = `${this.dir}/env.yml`;
+    if (fs.existsSync(envYAMLFile)) {
+      const yamlEnvironments = yamljs.load(envYAMLFile);
+      if (yamlEnvironments) {
+        _.merge(environment, yamlEnvironments[this.stage]);
+      }
+    }
+
+    this.environment = environment;
   }
 
-  get(key) {
+  async get(key) {
     switch (key) {
       case 'dir':
         return this.dir;
@@ -34,6 +55,10 @@ class EnvironmentDataSource {
     if (key === 'dir') {
       return this.dir;
     }
+  }
+
+  name() {
+    return 'Environment';
   }
 }
 

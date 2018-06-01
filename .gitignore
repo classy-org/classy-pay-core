@@ -57,12 +57,19 @@ typings/
 # dotenv environment variables file
 .env
 
+# Local environment / creds
 /environment.json
 creds.json
 creds.example.json
 
+# IDEs
 .idea
+.vscode
 
+# Babel compiled
 lib/
 testlib/
 
+# Lockfiles
+package-lock.json
+yarn.lock

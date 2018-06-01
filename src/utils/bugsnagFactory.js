@@ -1,17 +1,28 @@
 'use strict';
 require('regenerator-runtime/runtime');
 require('source-map-support').install();
+
 const Once = require('./Once');
-const Common = require('../index').async();
 const bugsnag = require('bugsnag');
 const uuidv1 = require('uuid/v1');
+const _ = require('lodash');
 
-const initialize = async appName => {
+let globalParameters;
+
+const initialize = async (appName, key, releaseStage) => {
+  if (globalParameters) {
+    if (!_.isEqual(globalParameters, {appName, key, releaseStage})) {
+      throw Error(`Bugsnag was already configured one way; you cannot reconfigure it differently`);
+    }
+  } else {
+    globalParameters = {appName, key, releaseStage};
+  }
+
   if (!initialize.once) {
     initialize.once = new Once(async () => {
       // Set up bugsnag
       const options = {
-        releaseStage: await Common.get('stage'),
+        releaseStage,
         sendCode: true,
         metaData: {
           revision: process.env.BB_COMMIT,
@@ -27,7 +38,7 @@ const initialize = async appName => {
       for (let x of process.listeners('uncaughtException')) {
         process.removeListener('uncaughtException', x);
       }
-      bugsnag.register(await Common.get('BUGSNAG_LAMBDAS_KEY'), options);
+      bugsnag.register(key, options);
       process.on('uncaughtException', (err) => {
         bugsnag.notify(err);
       });
@@ -39,7 +50,7 @@ const initialize = async appName => {
   await initialize.once.do();
 };
 
-module.exports = async (appName) => {
-  await initialize(appName);
+module.exports = async (appName, key, releaseStage) => {
+  await initialize(appName, key, releaseStage);
   return bugsnag;
 };

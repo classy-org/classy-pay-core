@@ -1,21 +1,30 @@
 'use strict';
 require('regenerator-runtime/runtime');
+require('source-map-support').install();
+
+const Lock = require('./utils/Lock');
+
 const DataSourceManager = require('./DataSourceManager');
-const Once = require('./utils/Once');
 
 class Config {
   constructor(dataSources) {
     this.dataSourceManagers = [];
+    this.lock = new Lock();
     for (let dataSource of dataSources) {
-      this.dataSourceManagers.push(new DataSourceManager(dataSource, this));
+      // Allow data sources to call into config reentrant if needed
+      this.dataSourceManagers.push(new DataSourceManager(dataSource, {get: key => this._getLocked(key)}));
     }
   }
 
   async get(key) {
+    return await this.lock.lockForPath(async () => {
+      return await this._getLocked(key);
+    });
+  }
+
+  async _getLocked(key) {
     for (let dataSourceManager of this.dataSourceManagers) {
-      if (dataSourceManager.initializing) {
-        // Abort in cases where a data source pulls from config in
-        // initialization then reaches the currently-initializing data source.
+      if (dataSourceManager.querying) {
         return null;
       }
       let value = await dataSourceManager.get(key);
@@ -24,35 +33,6 @@ class Config {
       }
     }
     return null;
-  }
-
-  legacy() {
-    return {
-      initialize: () => {
-        if (!this.initialization) {
-          this.initialization = new Once(async () => {
-            for (let dataSourceManager of this.dataSourceManagers) {
-              await dataSourceManager.legacy().initialize();
-            }
-            this.initializationDone = true;
-          });
-        }
-        return this.initialization.do();
-      },
-      get: (key) => {
-        if (!this.initializationDone) {
-          throw Error('You must call Config.legacy().initialize() first before using legacyGet()');
-        }
-
-        for (let dataSourceManager of this.dataSourceManagers) {
-          let value = dataSourceManager.legacy().get(key);
-          if (value) {
-            return value;
-          }
-        }
-        return null;
-      }
-    };
   }
 };
 

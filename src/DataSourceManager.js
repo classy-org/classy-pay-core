@@ -1,6 +1,8 @@
 'use strict';
 require('regenerator-runtime/runtime');
-const Once = require('./utils/Once');
+require('source-map-support').install();
+
+const Lock = require('./utils/Lock');
 
 class DataSourceManager {
   constructor(dataSource, config) {
@@ -8,38 +10,39 @@ class DataSourceManager {
       throw new Error('Cannot construct DataSourceManager with null data source');
     }
 
+    this.lock = new Lock();
     this.dataSource = dataSource;
     this.config = config;
+    this.initialized = false;
+    this.querying = false;
+    this.cache = {values: {}, missing: {}};
   }
 
-  _init() {
-    if (!this.once) {
-      this.initializing = true;
-      this.once = new Once(async () => {
-        await this.dataSource.initialize(this.config);
-        this.initializing = false;
-      });
+  async _init() {
+    if (!this.initialized) {
+      await this.dataSource.initialize(this.config);
+      this.initialized = true;
     }
-    return this.once.do();
   }
 
   async get(key) {
-    await this._init();
-    return this.dataSource.get(key);
-  }
-
-  legacy() {
-    return {
-      initialize: () => {
-        return this._init();
-      },
-      get: key => {
-        if (!this.once.done) {
-          throw new Error('Cannot call legacy().get() before calling legacy().initialize()');
+    return await this.lock.lockForPath(async () => {
+      this.querying = true;
+      try {
+        await this._init();
+        if (!(key in this.cache.values || key in this.cache.missing)) {
+          const value = await this.dataSource.get(key);
+          if (value) {
+            this.cache.values[key] = value;
+          } else {
+            this.cache.missing[key] = true;
+          }
         }
-        return this.dataSource.get(key);
+        return this.cache.values[key];
+      } finally {
+        this.querying = false;
       }
-    };
+    });
   }
 }
 

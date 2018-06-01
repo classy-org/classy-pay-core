@@ -1,22 +1,25 @@
 'use strict';
 require('regenerator-runtime/runtime');
+require('source-map-support').install();
+
 const _ = require('lodash');
+const PayClient = require('../PayClient')
 
 class ClientDataSource {
   async initialize(config) {
     this.clients = {};
 
     if (await config.get('pay')) {
-      this.clients.PayClient = require('classy-pay-client')({
-        apiUrl: await config.get('pay.apiUrl'),
-        timeout: await config.get('pay.timeout'),
-        token: await config.get('PAY_TOKEN'),
-        secret: await config.get('PAY_SECRET')
-      });
+      this.clients.payClient = new PayClient(
+        await config.get('pay.apiUrl'),
+        await config.get('PAY_TOKEN'),
+        await config.get('PAY_SECRET'), {
+          timeout: await config.get('pay.timeout')
+        });
     }
 
     if (await config.get('api')) {
-      this.clients.ApiClient = require('classy-api-client')({
+      this.clients.apiClient = require('classy-api-client')({
         clientId: await config.get('APIV2_CLIENT_ID'),
         clientSecret: await config.get('APIV2_CLIENT_SECRET'),
         timeout: await config.get('api.timeout'),
@@ -26,8 +29,12 @@ class ClientDataSource {
     }
   }
 
-  get(key) {
-    return _.get(this.clients, key, null);
+  async get(key) {
+    return _.get(this.clients, _.camelCase(key), null);
+  }
+
+  name() {
+    return 'Clients';
   }
 }
 

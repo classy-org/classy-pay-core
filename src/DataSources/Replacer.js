@@ -1,5 +1,6 @@
 'use strict';
 require('regenerator-runtime/runtime');
+require('source-map-support').install();
 
 class ReplacerDataSource {
   async initialize(config) {
@@ -20,8 +21,12 @@ class ReplacerDataSource {
     }
   }
 
-  get(key) {
+  async get(key) {
     return key === 'Replacer' ? this.replacer : null;
+  }
+
+  name() {
+    return 'Replacer';
   }
 }
 
