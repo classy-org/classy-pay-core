@@ -4,6 +4,8 @@ require('source-map-support').install();
 
 const Credstash = require('nodecredstash');
 
+const throttledRetrier = require('../utils/throttledRetrier');
+
 const isCredstashKey = key => /^[A-Z0-9_]+$/.test(key);
 const stringToBool = result => (result === 'true' || result === 'false') ? result === 'true' : result;
 
@@ -19,7 +21,9 @@ class CredstashDataSource {
           region: await config.get('aws.region')
         }
       });
-      this._getImpl = async key => stringToBool(await credstash.getSecret({name: key}));
+      this._getImpl = throttledRetrier(async key => stringToBool(await credstash.getSecret({name: key})), {
+        isErrorRetryableFunc: error => error.code === 'ProvisionedThroughputExceededException'
+      });
     };
   }
 
