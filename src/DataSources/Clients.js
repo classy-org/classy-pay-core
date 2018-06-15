@@ -20,13 +20,21 @@ class ClientDataSource {
     }
 
     if (await config.get('api')) {
-      this.clients.apiClient = Promise.promisifyAll(require('classy-api-client')({
-        clientId: await config.get('APIV2_CLIENT_ID'),
-        clientSecret: await config.get('APIV2_CLIENT_SECRET'),
-        timeout: await config.get('api.timeout'),
-        oauthUrl: await config.get('api.oauthUrl'),
-        apiUrl: await config.get('api.apiUrl')
-      }));
+      if (await config.get('api.clientType') === 'classy-node') {
+        const Classy = require('classy-node');
+        this.clients.apiClient = new Classy({
+          clientId: await config.get('APIV2_CLIENT_ID'),
+          clientSecret: await config.get('APIV2_CLIENT_SECRET')
+        });
+      } else {
+        this.clients.apiClient = Promise.promisifyAll(require('classy-api-client')({
+          clientId: await config.get('APIV2_CLIENT_ID'),
+          clientSecret: await config.get('APIV2_CLIENT_SECRET'),
+          timeout: await config.get('api.timeout'),
+          oauthUrl: await config.get('api.oauthUrl'),
+          apiUrl: await config.get('api.apiUrl')
+        }));
+      }
     }
   }
 
