@@ -25,7 +25,8 @@ class ClientDataSource {
         clientSecret: await config.get('APIV2_CLIENT_SECRET'),
         timeout: await config.get('api.timeout'),
         oauthUrl: await config.get('api.oauthUrl'),
-        apiUrl: await config.get('api.apiUrl')
+        apiUrl: await config.get('api.apiUrl'),
+        bigIntsToStrings: await config.get('api.bigIntsToStrings')
       }));
     }
   }
