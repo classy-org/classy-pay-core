@@ -30,6 +30,7 @@
     "bugsnag": "^2.1.3",
     "bunyan": "^1.8.12",
     "classy-api-client": "latest",
+    "classy-node": "^2.5.7",
     "lodash": "^4.17.5",
     "nodecredstash": "^2.0.2",
     "regenerator-runtime": "^0.11.1",
