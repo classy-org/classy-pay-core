@@ -93,4 +93,28 @@ describe('AWS Handler', () => {
 
     handlerStub.should.be.calledOnce();
   });
+
+  it('Wraps non-error object throwables in an Error object', async () => {
+    const handlerStub = sinon.stub();
+    handlerStub.rejects({});
+
+    let error;
+    try {
+      await promisify(awsHandler(handlerStub, 'APP'))({}, {});
+    } catch (e) {
+      error = e;
+    }
+
+    should.exist(error);
+    (error instanceof Error).should.be.true();
+    error.message.should.be.eql('{}');
+
+    bugsnagFactory.should.be.calledOnce();
+    AWSConfigStub.should.be.calledOnce();
+    AWSConfigGetStub.should.be.calledTwice();
+
+    bugsnag.notify.callCount.should.be.eql(1);
+
+    handlerStub.should.be.calledOnce();
+  });
 });
