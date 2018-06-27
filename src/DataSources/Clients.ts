@@ -1,13 +1,15 @@
-'use strict';
-require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
 const _ = require('lodash');
-const PayClient = require('../PayClient');
-const Promise = require('bluebird');
+import PayClient from '../PayClient';
+const Bluebird = require('bluebird');
 
-class ClientDataSource {
-  async initialize(config) {
+import {DataSource, DataSourceConfig} from '../DataSource';
+
+export class ClientDataSource extends DataSource {
+  clients?: { payClient?: PayClient, apiClient?: any }
+
+  async initialize(config: DataSourceConfig) {
     this.clients = {};
 
     if (await config.get('pay')) {
@@ -20,7 +22,7 @@ class ClientDataSource {
     }
 
     if (await config.get('api')) {
-      this.clients.apiClient = Promise.promisifyAll(require('classy-api-client')({
+      this.clients.apiClient = Bluebird.promisifyAll(require('classy-api-client')({
         clientId: await config.get('APIV2_CLIENT_ID'),
         clientSecret: await config.get('APIV2_CLIENT_SECRET'),
         timeout: await config.get('api.timeout'),
@@ -30,11 +32,11 @@ class ClientDataSource {
     }
   }
 
-  async get(key) {
+  async get(key: string): Promise<any> {
     return _.get(this.clients, _.camelCase(key), null);
   }
 
-  name() {
+  name(): string {
     return 'Clients';
   }
 }

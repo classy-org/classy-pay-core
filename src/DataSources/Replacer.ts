@@ -1,9 +1,14 @@
 'use strict';
-require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
-class ReplacerDataSource {
-  async initialize(config) {
+import {DataSource, DataSourceConfig} from '../DataSource';
+
+type ReplacerFunction = (key: string, value: string) => string;
+
+class ReplacerDataSource extends DataSource {
+  replacer?: ReplacerFunction;
+
+  async initialize(config: DataSourceConfig) {
     if (await config.get('security')) {
       const keys = await config.get('security.obfuscate');
       const replacement = await config.get('security.replacement');
@@ -21,11 +26,11 @@ class ReplacerDataSource {
     }
   }
 
-  async get(key) {
-    return key === 'Replacer' ? this.replacer : null;
+  async get(key: string): Promise<ReplacerFunction|undefined> {
+    return key === 'Replacer' ? this.replacer : undefined;
   }
 
-  name() {
+  name(): string {
     return 'Replacer';
   }
 }

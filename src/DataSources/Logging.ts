@@ -1,16 +1,19 @@
 'use strict';
-require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
-const bunyan = require('bunyan');
+import * as Logger from 'bunyan';
 
-class LoggingDataSource {
-  async initialize(config) {
+import {DataSource, DataSourceConfig} from '../DataSource';
+
+class LoggingDataSource extends DataSource {
+  logger?: Logger;
+
+  async initialize(config: DataSourceConfig) {
     const name = await config.get('name');
     if (!name) {
       throw new Error('LoggingDataSource requires that another data source provide a \'name\' configuration');
     }
-    this.Logger = bunyan.createLogger({
+    this.logger = Logger.createLogger({
       name,
       level: await config.get('log.level') || 'info',
       streams: [{
@@ -19,11 +22,11 @@ class LoggingDataSource {
     });
   }
 
-  async get(key) {
-    return key === 'Logger' ? this.Logger : undefined;
+  async get(key: string): Promise<Logger|undefined> {
+    return key === 'Logger' ? this.logger : undefined;
   }
 
-  name() {
+  name(): string {
     return 'Logging';
   }
 }

@@ -1,23 +1,25 @@
 'use strict';
-require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
-const _ = require('lodash');
+import * as _ from 'lodash';
 
-class Lock {
-  constructor() {
-    this.executing = false;
-    this.waiters = [];
-  }
+type CriticalPath = () => Promise<any>;
 
-  lockForPath(f) {
-    const waiter = {f};
+interface LockWaiter {
+  f: CriticalPath,
+  resolve: (value: any) => void,
+  reject: (error: any) => void
+};
+
+export class Lock {
+  executing: boolean = false;
+  waiters: Array<LockWaiter> = [];
+
+  lockForPath(f: CriticalPath) {
     const promise = new Promise((resolve, reject) => {
-      waiter.resolve = resolve;
-      waiter.reject = reject;
+      this.waiters.push({f, resolve, reject});
+      this._execute();
     });
-    this.waiters.push(waiter);
-    this._execute();
     return promise;
   }
 
@@ -26,8 +28,9 @@ class Lock {
       return;
     }
     this.executing = true;
-    if (this.waiters.length > 0) {
-      const {f, resolve, reject} = this.waiters.shift();
+    let lockWaiter: LockWaiter|undefined;
+    if (this.waiters.length > 0 && (lockWaiter = this.waiters.shift())) {
+      const {f, resolve, reject} = lockWaiter;
       let value;
       let error;
       try {
@@ -50,4 +53,4 @@ class Lock {
   }
 }
 
-module.exports = Lock;
+export default Lock;

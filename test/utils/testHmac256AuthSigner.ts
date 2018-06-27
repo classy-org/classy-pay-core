@@ -1,19 +1,20 @@
-const sinon = require('sinon');
-const should = require('should');
+import sinon = require('sinon');
+import should = require('should');
 require('should-sinon');
-const rewire = require('rewire');
-const hmac256AuthSigner = rewire('../../src/utils/hmac256AuthSigner');
+import mock = require('mock-require');
+import {HMACSignerFactory, CreateHMACSigner} from '../../src/utils/hmac256AuthSigner';
 
 describe('HMAC256AuthSigner', () => {
-  let revert;
-  let crypto;
-  let cryptoStubs;
+  let crypto: any;
+  let cryptoStubs: any;
+  let hmac256AuthSigner: HMACSignerFactory|undefined;
+
   beforeEach(() => {
     crypto = {
       createHash: () => {},
       createHmac: () => {}
     };
-    let cryptoFaker = value => ({
+    let cryptoFaker = (value: string) => ({
       update: () => ({
         digest: () => value
       })
@@ -22,16 +23,20 @@ describe('HMAC256AuthSigner', () => {
       createHash: sinon.stub(crypto, 'createHash').returns(cryptoFaker('##MD5HASH##')),
       createHmac: sinon.stub(crypto, 'createHmac').returns(cryptoFaker('##SHA256HMAC##'))
     }
-    revert = hmac256AuthSigner.__set__({'crypto': crypto});
+
+    mock('crypto', crypto);
+    hmac256AuthSigner = <HMACSignerFactory> mock.reRequire('../../src/utils/hmac256AuthSigner').CreateHMACSigner;
   });
   afterEach(() => {
-    revert();
+    mock.stopAll();
 
-    crypto = null;
-    cryptoStubs = null;
+    crypto = undefined;
+    cryptoStubs = undefined;
+    hmac256AuthSigner = undefined;
   });
 
   it('Successful Signature', () => {
+    if (!hmac256AuthSigner) throw new Error('Test not set up correctly');
     let sign = hmac256AuthSigner('service', 'token', 'secret');
     let signed = sign('method', 'path', 'contentType', 'body');
     signed.should.match(/^service ts=[0-9]+ token=token signature=##SHA256HMAC##$/);
@@ -40,10 +45,12 @@ describe('HMAC256AuthSigner', () => {
   });
 
   describe('Bad Args', () => {
-    const genBadArgTest = (name, service, token, secret) => {
+    const genBadArgTest = (name: string, service?: string, token?: string, secret?:string) => {
       it(name, () => {
         let error;
         try {
+          if (!hmac256AuthSigner) throw new Error('Test not set up correctly');
+          // @ts-ignore testing non-ts cases
           hmac256AuthSigner(service, token, secret);
         } catch (e) {
           error = e;

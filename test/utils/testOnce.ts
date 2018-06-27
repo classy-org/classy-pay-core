@@ -1,10 +1,8 @@
-const sinon = require('sinon');
-const should = require('should');
+import sinon = require('sinon');
 require('should-sinon');
-const rewire = require('rewire');
-const Once = rewire('../../src/utils/Once');
+import Once from '../../src/utils/Once';
 
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 describe('Once', () => {
   it('Calls code only once', async () => {

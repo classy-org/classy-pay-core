@@ -1,27 +1,29 @@
-const sinon = require('sinon');
-const should = require('should');
+import sinon = require('sinon');
+import should = require('should');
 require('should-sinon');
-const Promise = require('bluebird');
-const _ = require('lodash');
-const Lock = require('../../src/utils/Lock');
+import Promise = require('bluebird');
+import _ = require('lodash');
+import Lock from '../../src/utils/Lock';
 
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 describe('Lock', () => {
-  let lock;
+  let lock: Lock|undefined;
 
   beforeEach(() => {
     lock = new Lock();
   });
 
   afterEach(() => {
-    lock = null;
+    lock = undefined;
   });
 
   it('Locked code doesn\'t execute concurrently', async () => {
+    if (!lock) throw Error('Test wasn\'t set up correctly');
+    const l = lock;
     const nConcurrentPromises = 3;
     const promiseRunning = _.map(_.range(nConcurrentPromises), () => false);
-    const promiseAtIndex = async index => {
+    const promiseAtIndex = async (index: number) => {
       for (const p of promiseRunning) {
         if (p) {
           throw Error('Promise already running');
@@ -31,10 +33,11 @@ describe('Lock', () => {
       await sleep(0.2);
       promiseRunning[index] = false;
     };
-    await Promise.all(_.map(_.range(nConcurrentPromises), i => lock.lockForPath(() => (promiseAtIndex(i)))));
+    await Promise.all(_.map(_.range(nConcurrentPromises), i => l.lockForPath(() => (promiseAtIndex(i)))));
   });
 
   it('Exceptions propagated to caller', async () => {
+    if (!lock) throw Error('Test wasn\'t set up correctly');
     let error;
     try {
       await lock.lockForPath(async () => {
@@ -47,6 +50,7 @@ describe('Lock', () => {
   });
 
   it('Exceptions don\'t impact other callers', async () => {
+    if (!lock) throw Error('Test wasn\'t set up correctly');
     const promises = [];
     promises[0] = lock.lockForPath(async () => {
       return 0;

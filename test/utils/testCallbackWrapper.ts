@@ -1,7 +1,7 @@
-const sinon = require('sinon');
-const should = require('should');
+import sinon = require('sinon');
+import should = require('should');
 require('should-sinon');
-const callbackWrapper = require('../../src/utils/callbackWrapper');
+import callbackWrapper from '../../src/utils/callbackWrapper';
 
 describe('Callback Wrapper', () => {
   it('Empty Callback', done => {

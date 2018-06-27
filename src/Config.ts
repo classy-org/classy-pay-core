@@ -1,28 +1,28 @@
 'use strict';
-require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
-const Lock = require('./utils/Lock');
+import Lock from './utils/Lock';
+import DataSourceManager from './DataSourceManager';
+import DataSource from './DataSource';
 
-const DataSourceManager = require('./DataSourceManager');
+export class Config {
+  dataSourceManagers: Array<DataSourceManager> = [];
+  lock: Lock = new Lock();
 
-class Config {
-  constructor(dataSources) {
-    this.dataSourceManagers = [];
-    this.lock = new Lock();
+  constructor(dataSources: Array<DataSource>) {
     for (let dataSource of dataSources) {
       // Allow data sources to call into config reentrant if needed
       this.dataSourceManagers.push(new DataSourceManager(dataSource, {get: key => this._getLocked(key)}));
     }
   }
 
-  async get(key) {
+  async get(key: string): Promise<any> {
     return await this.lock.lockForPath(async () => {
       return await this._getLocked(key);
     });
   }
 
-  async _getLocked(key) {
+  async _getLocked(key: string): Promise<any> {
     for (let dataSourceManager of this.dataSourceManagers) {
       if (dataSourceManager.querying) {
         return null;
@@ -36,4 +36,4 @@ class Config {
   }
 };
 
-module.exports = Config;
+export default Config;

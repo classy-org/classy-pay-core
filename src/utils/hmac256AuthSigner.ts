@@ -1,10 +1,12 @@
 'use strict';
-require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
-const crypto = require('crypto');
+import crypto = require('crypto');
 
-module.exports = (service, token, secret) => {
+export type HMACSigner = (method: string, path: string, contentType: string, body?: string|null) => string;
+export type HMACSignerFactory = (service: string, token: string, secret:string) => HMACSigner;
+
+export const CreateHMACSigner: HMACSignerFactory = (service: string, token: string, secret:string): HMACSigner => {
   if (!service) throw Error('Hmac256AuthSigner config requires a service');
   if (!token) throw Error('Hmac256AuthSigner config requires a token');
   if (!secret) throw Error('Hmac256AuthSigner config requires a secret');
@@ -18,4 +20,4 @@ module.exports = (service, token, secret) => {
       crypto.createHmac('sha256', secret).update(message).digest('hex');
     return `${service} ts=${ts} token=${token} signature=${signature}`;
   };
-}
+};

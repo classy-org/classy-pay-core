@@ -1,27 +1,34 @@
-const sinon = require('sinon');
-const should = require('should');
+import sinon = require('sinon');
+import should = require('should');
 require('should-sinon');
-const _ = require('lodash');
-const Config = require('../src/Config');
+import _ = require('lodash');
+import Config from '../src/Config';
+import {SinonMock} from "sinon";
+import DataSource, {DataSourceConfig} from "../src/DataSource";
 
 describe('Config', () => {
-  let config;
-  let dataSources;
-  let dataSourceMocks;
+  let config: Config|undefined;
+  let dataSources: Array<DataSource>|undefined;
+  let dataSourceMocks: Array<SinonMock>|undefined;
 
   beforeEach(() => {
-    dataSources = _.map(_.range(2), () => ({initialize: () => {}, get: () => {}}));
+    dataSources = _.map(_.range(2), () => ({
+      initialize: (config: DataSourceConfig) => new Promise<void>(resolve => resolve()),
+      get: (key: string) => new Promise<void>(resolve => resolve()),
+      name: () => 'mock'
+    }));
     dataSourceMocks = _.map(dataSources, dataSource => (sinon.mock(dataSource)));
     config = new Config(dataSources);
   });
 
   afterEach(() => {
-    dataSources = null;
-    dataSourceMocks = null;
-    config = null;
+    dataSources = undefined;
+    dataSourceMocks = undefined;
+    config = undefined;
   });
 
   it('First data source has item', async () => {
+    if (!dataSourceMocks || !config) throw Error('Test not correctly set up');
     dataSourceMocks[0].expects('initialize').once();
     dataSourceMocks[0].expects('get').withArgs('key').once().resolves('value');
     dataSourceMocks[1].expects('initialize').never();
@@ -32,6 +39,7 @@ describe('Config', () => {
   });
 
   it('Second data source has item', async () => {
+    if (!dataSourceMocks || !config) throw Error('Test not correctly set up');
     dataSourceMocks[0].expects('initialize').once();
     dataSourceMocks[1].expects('initialize').once();
     dataSourceMocks[0].expects('get').withArgs('key').once().resolves(null);
@@ -42,6 +50,7 @@ describe('Config', () => {
   });
 
   it('No data source has item', async () => {
+    if (!dataSourceMocks || !config) throw Error('Test not correctly set up');
     dataSourceMocks[0].expects('initialize').once();
     dataSourceMocks[1].expects('initialize').once();
     dataSourceMocks[0].expects('get').withArgs('key').once().resolves(null);
@@ -52,6 +61,7 @@ describe('Config', () => {
   });
 
   it('Data source that queryies for itself should abort', async () => {
+    if (!dataSourceMocks || !config) throw Error('Test not correctly set up');
     dataSourceMocks[0].expects('initialize').once().callsFake(async config => {
       await config.get('key');
     });

@@ -1,12 +1,13 @@
 'use strict';
-require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
-const _ = require('lodash');
+import * as _ from 'lodash';
 
-class Once {
-  constructor(f) {
-    this.done = false;
+export class Once {
+  done: boolean = false;
+  oncePromise: Promise<any>;
+
+  constructor(f: () => Promise<any>) {
     this.oncePromise = f().then(() => {
       this.done = true;
     }).catch(error => {
@@ -19,9 +20,9 @@ class Once {
     });
   }
 
-  do() {
+  do(): Promise<any> {
     return this.oncePromise;
   }
 }
 
-module.exports = Once;
+export default Once;

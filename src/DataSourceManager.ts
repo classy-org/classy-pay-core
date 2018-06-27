@@ -1,21 +1,27 @@
 'use strict';
-require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
-const Lock = require('./utils/Lock');
+import Lock from './utils/Lock';
+import DataSource, {DataSourceConfig} from './DataSource';
 
-class DataSourceManager {
-  constructor(dataSource, config) {
+export class DataSourceManager {
+  lock: Lock = new Lock();
+  dataSource: DataSource;
+  config: DataSourceConfig;
+  initialized: boolean = false;
+  querying: boolean = false;
+  cache: { values: { [index: string] : any }, missing: { [index: string] : any } } = {values: {}, missing: {}};
+
+  constructor(dataSource: DataSource, config: DataSourceConfig) {
     if (!dataSource) {
       throw new Error('Cannot construct DataSourceManager with null data source');
     }
+    if (!config) {
+      throw new Error('Cannot construct DataSource with null config');
+    }
 
-    this.lock = new Lock();
     this.dataSource = dataSource;
     this.config = config;
-    this.initialized = false;
-    this.querying = false;
-    this.cache = {values: {}, missing: {}};
   }
 
   async _init() {
@@ -25,7 +31,7 @@ class DataSourceManager {
     }
   }
 
-  async get(key) {
+  async get(key: string): Promise<any> {
     return await this.lock.lockForPath(async () => {
       this.querying = true;
       try {
@@ -46,4 +52,4 @@ class DataSourceManager {
   }
 }
 
-module.exports = DataSourceManager;
+export default DataSourceManager;

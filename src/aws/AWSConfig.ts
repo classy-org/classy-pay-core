@@ -1,11 +1,10 @@
 'use strict';
-require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
-const Config = require('../Config');
+import Config from "../Config";
 
 class AWSConfig extends Config {
-  constructor(appName) {
+  constructor(appName: string) {
     super([
       require('../DataSources/Name')(appName),
       require('../DataSources/Environment'),
@@ -17,4 +16,4 @@ class AWSConfig extends Config {
   }
 }
 
-module.exports = AWSConfig;
+export default AWSConfig;

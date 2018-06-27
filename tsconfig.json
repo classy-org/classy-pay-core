@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "sourceMap": true,
+    "declaration": true,
+    "noImplicitReturns": true,
+    "strict": true,
+    "lib": [
+      "ES6",
+      "esnext.asynciterable"
+    ],
+    "outDir": "lib/"
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}

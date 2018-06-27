@@ -1,15 +1,25 @@
 'use strict';
-require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
-const Once = require('./Once');
-const bugsnag = require('bugsnag');
+import * as bugsnag from 'bugsnag';
+import * as _ from 'lodash';
+
 const uuidv1 = require('uuid/v1');
-const _ = require('lodash');
 
-let globalParameters;
+import Once from "./Once";
 
-const initialize = async (appName, key, releaseStage) => {
+const process = require('process');
+
+interface BugsnagFactoryConfiguration {
+  appName: string,
+  key: string,
+  releaseStage: string
+}
+
+let globalParameters: BugsnagFactoryConfiguration|undefined;
+let initializeOnce: Once|undefined;
+
+export const initialize = async (appName: string, key: string, releaseStage: string) => {
   if (globalParameters) {
     if (!_.isEqual(globalParameters, {appName, key, releaseStage})) {
       throw Error(`Bugsnag was already configured one way; you cannot reconfigure it differently`);
@@ -18,10 +28,10 @@ const initialize = async (appName, key, releaseStage) => {
     globalParameters = {appName, key, releaseStage};
   }
 
-  if (!initialize.once) {
-    initialize.once = new Once(async () => {
+  if (!initializeOnce) {
+    initializeOnce = new Once(async () => {
       // Set up bugsnag
-      const options = {
+      const options: bugsnag.ConfigurationOptions = {
         releaseStage,
         sendCode: true,
         metaData: {
@@ -39,18 +49,13 @@ const initialize = async (appName, key, releaseStage) => {
         process.removeListener('uncaughtException', x);
       }
       bugsnag.register(key, options);
-      process.on('uncaughtException', (err) => {
+      process.on('uncaughtException', (err: any) => {
         bugsnag.notify(err);
       });
-      process.on('unhandledRejection', (reason, p) => {
+      process.on('unhandledRejection', (reason: any, p: any) => {
         bugsnag.notify(reason);
       });
     });
   }
-  await initialize.once.do();
-};
-
-module.exports = async (appName, key, releaseStage) => {
-  await initialize(appName, key, releaseStage);
-  return bugsnag;
+  await initializeOnce.do();
 };

@@ -1,24 +1,28 @@
 'use strict';
-require('regenerator-runtime/runtime');
 require('source-map-support').install();
 
-const _ = require('lodash');
+import * as _ from 'lodash';
 const yamljs = require('yamljs');
 const fs = require('fs');
 
-class EnvironmentDataSource {
-  async initialize() {
-    this.dir = process.env.LAMBDA_TASK_ROOT || process.env.PWD;
+import {DataSource, DataSourceConfig} from '../DataSource';
+
+class EnvironmentDataSource extends DataSource {
+  dir?: string = process.env.PWD;
+  stage: string = 'dev';
+  dryRun: boolean = false;
+  environment?: object;
+
+  async initialize(config: DataSourceConfig) {
+    this.dir = process.env.LAMBDA_TASK_ROOT || this.dir;
 
     if (process.env.STAGE) {
       this.stage = process.env.STAGE;
     } else if (process.env.AWS_LAMBDA_FUNCTION_NAME) {
       this.stage = process.env.AWS_LAMBDA_FUNCTION_NAME.split('-')[2];
-    } else {
-      this.stage = 'dev';
     }
 
-    this.dryRun = process.env.DRYRUN ? Boolean(process.env.DRYRUN) : false;
+    this.dryRun = process.env.DRYRUN ? Boolean(process.env.DRYRUN) : this.dryRun;
 
     let environment = {};
 
@@ -41,7 +45,7 @@ class EnvironmentDataSource {
     this.environment = environment;
   }
 
-  async get(key) {
+  async get(key: string): Promise<any> {
     switch (key) {
       case 'dir':
         return this.dir;
@@ -57,7 +61,7 @@ class EnvironmentDataSource {
     }
   }
 
-  name() {
+  name(): string {
     return 'Environment';
   }
 }
