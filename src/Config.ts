@@ -22,7 +22,7 @@ export class Config {
     });
   }
 
-  async _getLocked(key: string): Promise<any> {
+  private async _getLocked(key: string): Promise<any> {
     for (let dataSourceManager of this.dataSourceManagers) {
       if (dataSourceManager.querying) {
         return null;
