@@ -44,15 +44,6 @@ export class PayClient {
     this.sign = CreateHMACSigner('CWS', token, secret);
   }
 
-  /**
-   * Get all the necessary headers for the request.
-   *
-   * @param {String} method the HTTP method for the request
-   * @param {String} resource the resource being requested
-   * @param {Object} payload  the body of the request
-   *
-   * @return {Object} the headers objects
-   */
   private getHeaders(method: string, resource: string, payload?: object): object {
     return {
       'Authorization': this.sign(
@@ -66,17 +57,6 @@ export class PayClient {
     };
   }
 
-  /**
-   * Get the request options.
-   *
-   * @param {String} appId the pay application id
-   * @param {String} method the http method
-   * @param {String} resource the resource for the request
-   * @param {Object} payload the body of the request
-   * @param {Object} params the params provided by the caller
-   *
-   * @return {Object} the options for the request
-   */
   private getOptions(
     appId: string,
     method: string,
@@ -95,20 +75,6 @@ export class PayClient {
     };
   }
 
-  /**
-   * A general Pay request.
-   *
-   * @param {String} appId the pay application id
-   * @param {String} method the http method
-   * @param {String} resource the pay resource
-   * @param {Object} payload the payload for the request
-   * @param {Object} params the parameterspayload) : null,
-   *  timeout: this.config.timeout,
-   *  headers: this.getHeaders(method, resource, payload),
-   *  resolveWithFullResponse: true, for the request
-   *
-   * @return {Promise} result of the request, including parsed body if JSON
-   */
   private async request(
     appId: string,
     method: string,
@@ -136,28 +102,10 @@ export class PayClient {
     };
   }
 
-  /**
-   * Get an object.
-   *
-   * @param {String} appId the pay application id
-   * @param {String} method the http method
-   * @param {String} resource the pay resource
-   * @param {Object} body the body of the request
-   *
-   * @return {Promise} object of the request
-   */
   private async forObject(appId: string, method: string, resource: string, body?: object): Promise<object|string> {
     return (await this.request(appId, method, resource, body)).object;
   }
 
-  /**
-   * Get all objects.
-   *
-   * @param {String} appId the pay application id
-   * @param {String} resource the pay resource
-   *
-   * @return {Promise} objects of the request
-   */
   private async forList(appId: string, resource: string): Promise<Array<object>> {
     const responseObj = (await this.request(appId, 'GET', `${resource}/count`)).object;
     if (typeof responseObj === 'string') {
