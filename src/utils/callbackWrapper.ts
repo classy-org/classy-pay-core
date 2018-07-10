@@ -1,4 +1,3 @@
-'use strict';
 require('source-map-support').install();
 
 type callback = (error?: Error, value?: any) => void;

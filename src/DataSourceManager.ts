@@ -1,4 +1,3 @@
-'use strict';
 require('source-map-support').install();
 
 import Lock from './utils/Lock';

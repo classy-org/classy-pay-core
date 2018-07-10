@@ -1,4 +1,3 @@
-'use strict';
 require('source-map-support').install();
 
 const { promisify } = require('util');
