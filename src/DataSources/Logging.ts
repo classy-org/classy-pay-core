@@ -1,4 +1,3 @@
-'use strict';
 require('source-map-support').install();
 
 import * as Logger from 'bunyan';
@@ -6,9 +5,9 @@ import * as Logger from 'bunyan';
 import {DataSource, DataSourceConfig} from '../DataSource';
 
 class LoggingDataSource extends DataSource {
-  logger?: Logger;
+  private logger?: Logger;
 
-  async initialize(config: DataSourceConfig) {
+  public async initialize(config: DataSourceConfig) {
     const name = await config.get('name');
     if (!name) {
       throw new Error('LoggingDataSource requires that another data source provide a \'name\' configuration');
@@ -17,18 +16,18 @@ class LoggingDataSource extends DataSource {
       name,
       level: await config.get('log.level') || 'info',
       streams: [{
-        stream: process.stdout
-      }]
+        stream: process.stdout,
+      }],
     });
   }
 
-  async get(key: string): Promise<Logger|undefined> {
+  public async get(key: string): Promise<Logger|undefined> {
     return key === 'Logger' ? this.logger : undefined;
   }
 
-  name(): string {
+  public name(): string {
     return 'Logging';
   }
 }
 
-module.exports = new LoggingDataSource;
+module.exports = new LoggingDataSource();

@@ -1,4 +1,3 @@
-'use strict';
 require('source-map-support').install();
 
 import * as _ from 'lodash';
@@ -8,12 +7,12 @@ const fs = require('fs');
 import {DataSource, DataSourceConfig} from '../DataSource';
 
 class EnvironmentDataSource extends DataSource {
-  dir?: string = process.env.PWD;
-  stage: string = 'dev';
-  dryRun: boolean = false;
-  environment?: object;
+  private dir?: string = process.env.PWD;
+  private stage: string = 'dev';
+  private dryRun: boolean = false;
+  private environment?: object;
 
-  async initialize(config: DataSourceConfig) {
+  public async initialize(config: DataSourceConfig) {
     this.dir = process.env.LAMBDA_TASK_ROOT || this.dir;
 
     if (process.env.STAGE) {
@@ -24,7 +23,7 @@ class EnvironmentDataSource extends DataSource {
 
     this.dryRun = process.env.DRYRUN ? Boolean(process.env.DRYRUN) : this.dryRun;
 
-    let environment = {};
+    const environment = {};
 
     const envJSONFile = `${this.dir}/environment.json`;
     if (fs.existsSync(envJSONFile)) {
@@ -45,7 +44,7 @@ class EnvironmentDataSource extends DataSource {
     this.environment = environment;
   }
 
-  async get(key: string): Promise<any> {
+  public async get(key: string): Promise<any> {
     switch (key) {
       case 'dir':
         return this.dir;
@@ -61,9 +60,9 @@ class EnvironmentDataSource extends DataSource {
     }
   }
 
-  name(): string {
+  public name(): string {
     return 'Environment';
   }
 }
 
-module.exports = new EnvironmentDataSource;
+module.exports = new EnvironmentDataSource();

@@ -1,4 +1,3 @@
-import sinon = require('sinon');
 import should = require('should');
 require('should-sinon');
 import Promise = require('bluebird');
@@ -55,13 +54,13 @@ describe('Lock', () => {
     promises[0] = lock.lockForPath(async () => {
       return 0;
     });
-    let myError = new Error();
+    const myError = new Error();
     promises[1] = lock.lockForPath(async () => {
         throw myError;
     });
     promises[2] = lock.lockForPath(async () => {
       return 2;
-    })
+    });
     const results = [];
     const errors = [];
     let idx = 0;

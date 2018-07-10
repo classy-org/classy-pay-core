@@ -2,7 +2,7 @@ import sinon = require('sinon');
 import should = require('should');
 require('should-sinon');
 import mock = require('mock-require');
-import {HMACSignerFactory, CreateHMACSigner} from '../../src/utils/hmac256AuthSigner';
+import { HMACSignerFactory } from '../../src/utils/hmac256AuthSigner';
 
 describe('HMAC256AuthSigner', () => {
   let crypto: any;
@@ -12,17 +12,17 @@ describe('HMAC256AuthSigner', () => {
   beforeEach(() => {
     crypto = {
       createHash: () => {},
-      createHmac: () => {}
+      createHmac: () => {},
     };
-    let cryptoFaker = (value: string) => ({
+    const cryptoFaker = (value: string) => ({
       update: () => ({
-        digest: () => value
-      })
+        digest: () => value,
+      }),
     });
     cryptoStubs = {
       createHash: sinon.stub(crypto, 'createHash').returns(cryptoFaker('##MD5HASH##')),
-      createHmac: sinon.stub(crypto, 'createHmac').returns(cryptoFaker('##SHA256HMAC##'))
-    }
+      createHmac: sinon.stub(crypto, 'createHmac').returns(cryptoFaker('##SHA256HMAC##')),
+    };
 
     mock('crypto', crypto);
     hmac256AuthSigner = <HMACSignerFactory> mock.reRequire('../../src/utils/hmac256AuthSigner').CreateHMACSigner;
@@ -37,15 +37,15 @@ describe('HMAC256AuthSigner', () => {
 
   it('Successful Signature', () => {
     if (!hmac256AuthSigner) throw new Error('Test not set up correctly');
-    let sign = hmac256AuthSigner('service', 'token', 'secret');
-    let signed = sign('method', 'path', 'contentType', 'body');
+    const sign = hmac256AuthSigner('service', 'token', 'secret');
+    const signed = sign('method', 'path', 'contentType', 'body');
     signed.should.match(/^service ts=[0-9]+ token=token signature=##SHA256HMAC##$/);
     cryptoStubs.createHash.should.have.been.calledOnce();
     cryptoStubs.createHmac.should.have.been.calledOnce();
   });
 
   describe('Bad Args', () => {
-    const genBadArgTest = (name: string, service?: string, token?: string, secret?:string) => {
+    const genBadArgTest = (name: string, service?: string, token?: string, secret?: string) => {
       it(name, () => {
         let error;
         try {

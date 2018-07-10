@@ -7,9 +7,9 @@ const Bluebird = require('bluebird');
 import {DataSource, DataSourceConfig} from '../DataSource';
 
 export class ClientDataSource extends DataSource {
-  clients?: { payClient?: PayClient, apiClient?: any }
+  private clients?: { payClient?: PayClient, apiClient?: any };
 
-  async initialize(config: DataSourceConfig) {
+  public async initialize(config: DataSourceConfig) {
     this.clients = {};
 
     if (await config.get('pay')) {
@@ -17,7 +17,7 @@ export class ClientDataSource extends DataSource {
         await config.get('pay.apiUrl'),
         await config.get('PAY_TOKEN'),
         await config.get('PAY_SECRET'), {
-          timeout: await config.get('pay.timeout')
+          timeout: await config.get('pay.timeout'),
         });
     }
 
@@ -27,18 +27,18 @@ export class ClientDataSource extends DataSource {
         clientSecret: await config.get('APIV2_CLIENT_SECRET'),
         timeout: await config.get('api.timeout'),
         oauthUrl: await config.get('api.oauthUrl'),
-        apiUrl: await config.get('api.apiUrl')
+        apiUrl: await config.get('api.apiUrl'),
       }));
     }
   }
 
-  async get(key: string): Promise<any> {
+  public async get(key: string): Promise<any> {
     return _.get(this.clients, _.camelCase(key), null);
   }
 
-  name(): string {
+  public name(): string {
     return 'Clients';
   }
 }
 
-module.exports = new ClientDataSource;
+module.exports = new ClientDataSource();

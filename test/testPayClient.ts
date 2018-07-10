@@ -1,45 +1,45 @@
-import {SinonStub} from "sinon";
-
+import { SinonStub } from 'sinon';
 import sinon = require('sinon');
 import should = require('should');
 require('should-sinon');
 import _ = require('lodash');
 import mock = require('mock-require');
-type StubFunction = (...params: any[]) => any;
 
-import PayClient from "../src/PayClient";
+import PayClient from '../src/PayClient';
+
+type StubFunction = (...params: any[]) => any;
 
 const SUCCESSFUL_EMPTY_JSON_RESPONSE = {
   statusCode: 200,
   headers: {
-    'content-type': ['application/json']
+    'content-type': ['application/json'],
   },
-  body: '{}'
+  body: '{}',
 };
 
 const BAD_RESPONSE = {
   statusCode: 500,
   headers: {
-    'content-type': ['application/json']
+    'content-type': ['application/json'],
   },
-  body: 'Server error!'
+  body: 'Server error!',
 };
 
-const buildExpectedRequest = (method: string, appId: string, path: string, body? : string, qs : object = {}) => ({
-  method: method,
+const buildExpectedRequest = (method: string, appId: string, path: string, body?: string, qs: object = {}) => ({
+  method,
   url: `##URL##${path}`,
   qs: _.extend({
     appId,
-    meta: true
+    meta: true,
   }, qs),
   body,
   timeout: undefined,
   headers: {
     'Authorization': '##SIGNATURE##',
     'User-Agent': 'ClassyPay Node.JS',
-    'Content-Type': body ? 'application/json' : undefined
+    'Content-Type': body ? 'application/json' : undefined,
   },
-  resolveWithFullResponse: true
+  resolveWithFullResponse: true,
 });
 
 describe('PayClient', () => {
@@ -54,7 +54,7 @@ describe('PayClient', () => {
     requestStub = sinon.stub();
 
     mock('../src/utils/hmac256AuthSigner', {
-      CreateHMACSigner: () => signStub
+      CreateHMACSigner: () => signStub,
     });
     mock('request-promise', <StubFunction> requestStub);
 
@@ -121,18 +121,21 @@ describe('PayClient', () => {
       url: '##URL##/some/path/count',
       qs: {
         appId: 'appId',
-        meta: true
+        meta: true,
       },
       body: undefined,
       timeout: undefined,
       headers: {
         'Authorization': '##SIGNATURE##',
         'User-Agent': 'ClassyPay Node.JS',
-        'Content-Type': undefined
+        'Content-Type': undefined,
       },
-      resolveWithFullResponse: true
+      resolveWithFullResponse: true,
     }).resolves(_.extend(_.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE), {body: '{"count":40}'}));
-    requestStub.resolves(_.extend(_.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE), {body: JSON.stringify(_.map(_.range(0, 25), () => ({})))}));
+    requestStub.resolves(_.extend(
+      _.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE),
+      {body: JSON.stringify(_.map(_.range(0, 25), () => ({})))},
+    ));
     const obj = await payClient.list('appId', '/some/path');
     obj.should.be.eql(_.map(_.range(0, 50), () => ({})));
     signStub.should.have.been.calledThrice();
@@ -141,12 +144,18 @@ describe('PayClient', () => {
     signStub.getCall(2).args.should.be.eql(['GET', '/some/path', 'application/json', undefined]);
     requestStub.should.have.been.calledThrice();
     requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('GET', 'appId', '/some/path/count'));
-    requestStub.getCall(1).args[0].should.be.eql(buildExpectedRequest('GET', 'appId', '/some/path', undefined, {limit: 25, offset: 0}));
-    requestStub.getCall(2).args[0].should.be.eql(buildExpectedRequest('GET', 'appId', '/some/path', undefined, {limit: 25, offset: 25}));
+    requestStub.getCall(1).args[0].should.be.eql(
+      buildExpectedRequest('GET', 'appId', '/some/path', undefined, {limit: 25, offset: 0}),
+    );
+    requestStub.getCall(2).args[0].should.be.eql(
+      buildExpectedRequest('GET', 'appId', '/some/path', undefined, {limit: 25, offset: 25}),
+    );
   });
 
   it('Rejects non-string appId', async () => {
-    if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+    if (!requestStub || !signStub || !payClient) {
+      throw new Error('Cannot start test, beforeEach() wasn\'t run');
+    }
     let error;
     try {
       // @ts-ignore testing usage in non-ts
@@ -158,7 +167,9 @@ describe('PayClient', () => {
   });
 
   it('Rejects invalid resource', async () => {
-    if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+    if (!requestStub || !signStub || !payClient) {
+      throw new Error('Cannot start test, beforeEach() wasn\'t run');
+    }
     let error;
     try {
       await payClient.get('appId', '/some/path?appId=15');
@@ -169,7 +180,9 @@ describe('PayClient', () => {
   });
 
   it('Throws server error', async () => {
-    if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+    if (!requestStub || !signStub || !payClient) {
+      throw new Error('Cannot start test, beforeEach() wasn\'t run');
+    }
     requestStub.resolves(BAD_RESPONSE);
     let error;
     try {
@@ -184,13 +197,15 @@ describe('PayClient', () => {
     let stubs: { [index in 'list' | 'get' | 'post' | 'put' | 'del' ] : SinonStub } | undefined;
 
     beforeEach(() => {
-      if (!payClient) throw new Error('Cannot start test, no payClient to stub');
+      if (!payClient) {
+        throw new Error('Cannot start test, no payClient to stub');
+      }
       stubs = {
         list: sinon.stub<PayClient>(payClient, 'list').resolves({}),
         get: sinon.stub<PayClient>(payClient, 'get').resolves({}),
         post: sinon.stub<PayClient>(payClient, 'post').resolves({}),
         put: sinon.stub<PayClient>(payClient, 'put').resolves({}),
-        del: sinon.stub<PayClient>(payClient, 'del').resolves({})
+        del: sinon.stub<PayClient>(payClient, 'del').resolves({}),
       };
     });
 
@@ -199,42 +214,54 @@ describe('PayClient', () => {
     });
 
     it('Get', async () => {
-      if (!requestStub || !signStub || !payClient || !stubs) throw new Error('Cannot start test, beforeEach() wasn\'t run');
-      let obj = await payClient.forAppId('appId').get('/some/path');
+      if (!requestStub || !signStub || !payClient || !stubs) {
+        throw new Error('Cannot start test, beforeEach() wasn\'t run');
+      }
+      const obj = await payClient.forAppId('appId').get('/some/path');
       obj.should.be.eql({});
       stubs.get.should.have.been.calledOnce();
     });
 
     it('Post', async () => {
-      if (!requestStub || !signStub || !payClient || !stubs) throw new Error('Cannot start test, beforeEach() wasn\'t run');
-      let obj = await payClient.forAppId('appId').post('/some/path', {});
+      if (!requestStub || !signStub || !payClient || !stubs) {
+        throw new Error('Cannot start test, beforeEach() wasn\'t run');
+      }
+      const obj = await payClient.forAppId('appId').post('/some/path', {});
       obj.should.be.eql({});
       stubs.post.should.have.been.calledOnce();
     });
 
     it('Put', async () => {
-      if (!requestStub || !signStub || !payClient || !stubs) throw new Error('Cannot start test, beforeEach() wasn\'t run');
-      let obj = await payClient.forAppId('appId').put('/some/path', {});
+      if (!requestStub || !signStub || !payClient || !stubs) {
+        throw new Error('Cannot start test, beforeEach() wasn\'t run');
+      }
+      const obj = await payClient.forAppId('appId').put('/some/path', {});
       obj.should.be.eql({});
       stubs.put.should.have.been.calledOnce();
     });
 
     it('Del(ete)', async () => {
-      if (!requestStub || !signStub || !payClient || !stubs) throw new Error('Cannot start test, beforeEach() wasn\'t run');
-      let obj = await payClient.forAppId('appId').del('/some/path');
+      if (!requestStub || !signStub || !payClient || !stubs) {
+        throw new Error('Cannot start test, beforeEach() wasn\'t run');
+      }
+      const obj = await payClient.forAppId('appId').del('/some/path');
       obj.should.be.eql({});
       stubs.del.should.have.been.calledOnce();
     });
 
     it('List', async () => {
-      if (!requestStub || !signStub || !payClient || !stubs) throw new Error('Cannot start test, beforeEach() wasn\'t run');
-      let obj = await payClient.forAppId('appId').list('/some/path');
+      if (!requestStub || !signStub || !payClient || !stubs) {
+        throw new Error('Cannot start test, beforeEach() wasn\'t run');
+      }
+      const obj = await payClient.forAppId('appId').list('/some/path');
       obj.should.be.eql({});
       stubs.list.should.have.been.calledOnce();
     });
 
     it('Rejects non-string appId', async () => {
-      if (!requestStub || !signStub || !payClient || !stubs) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+      if (!requestStub || !signStub || !payClient || !stubs) {
+        throw new Error('Cannot start test, beforeEach() wasn\'t run');
+      }
       let error;
       try {
         // @ts-ignore testing usage in non-ts

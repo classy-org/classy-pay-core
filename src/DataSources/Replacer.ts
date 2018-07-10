@@ -1,4 +1,3 @@
-'use strict';
 require('source-map-support').install();
 
 import {DataSource, DataSourceConfig} from '../DataSource';
@@ -6,9 +5,9 @@ import {DataSource, DataSourceConfig} from '../DataSource';
 type ReplacerFunction = (key: string, value: string) => string;
 
 class ReplacerDataSource extends DataSource {
-  replacer?: ReplacerFunction;
+  private replacer?: ReplacerFunction;
 
-  async initialize(config: DataSourceConfig) {
+  public async initialize(config: DataSourceConfig) {
     if (await config.get('security')) {
       const keys = await config.get('security.obfuscate');
       const replacement = await config.get('security.replacement');
@@ -26,13 +25,13 @@ class ReplacerDataSource extends DataSource {
     }
   }
 
-  async get(key: string): Promise<ReplacerFunction|undefined> {
+  public async get(key: string): Promise<ReplacerFunction|undefined> {
     return key === 'Replacer' ? this.replacer : undefined;
   }
 
-  name(): string {
+  public name(): string {
     return 'Replacer';
   }
 }
 
-module.exports = new ReplacerDataSource;
+module.exports = new ReplacerDataSource();

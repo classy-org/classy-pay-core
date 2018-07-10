@@ -9,16 +9,16 @@ describe('Once', () => {
     const stub = sinon.stub().resolves(null);
     let complete = false;
     const once = new Once(async () => {
-      while (complete == false) {
+      while (complete === false) {
         await sleep(1);
       }
       stub();
     });
-    once.done.should.be.equal(false);
+    once.getDone().should.be.equal(false);
     complete = true;
     await once.do();
     await once.do();
     stub.should.be.calledOnce();
-    once.done.should.be.equal(true);
+    once.getDone().should.be.equal(true);
   });
 });

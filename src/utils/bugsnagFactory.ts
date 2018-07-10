@@ -1,4 +1,3 @@
-'use strict';
 require('source-map-support').install();
 
 import * as bugsnag from 'bugsnag';
@@ -6,14 +5,14 @@ import * as _ from 'lodash';
 
 const uuidv1 = require('uuid/v1');
 
-import Once from "./Once";
+import Once from './Once';
 
 const process = require('process');
 
 interface BugsnagFactoryConfiguration {
-  appName: string,
-  key: string,
-  releaseStage: string
+  appName: string;
+  key: string;
+  releaseStage: string;
 }
 
 let globalParameters: BugsnagFactoryConfiguration|undefined;
@@ -36,16 +35,16 @@ export const initialize = async (appName: string, key: string, releaseStage: str
         sendCode: true,
         metaData: {
           revision: process.env.BB_COMMIT,
-          errorId: uuidv1()
+          errorId: uuidv1(),
         },
         filters: ['cvv', 'lastName', 'address1', 'address2', 'address3', 'address4', 'email', 'token',
         'city', 'state', 'province', 'zip', 'phone', 'birth_month', 'birth_day', 'birth_year',
-        'signature', 'accountNumber', 'routingNumber', 'ssn']
+        'signature', 'accountNumber', 'routingNumber', 'ssn'],
       };
       if (appName) {
         options.appType = appName;
       }
-      for (let x of process.listeners('uncaughtException')) {
+      for (const x of process.listeners('uncaughtException')) {
         process.removeListener('uncaughtException', x);
       }
       bugsnag.register(key, options);

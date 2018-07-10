@@ -1,38 +1,37 @@
-'use strict';
-import {UriOptions, UrlOptions} from "request";
+import {UriOptions, UrlOptions} from 'request';
 
 require('source-map-support').install();
 
 import { Promise } from 'bluebird';
 import req = require('request-promise');
-import * as _ from "lodash"
+import * as _ from 'lodash';
 
-import {CreateHMACSigner, HMACSigner} from "./utils/hmac256AuthSigner";
-import {RequestPromiseOptions} from "request-promise";
+import { CreateHMACSigner, HMACSigner } from './utils/hmac256AuthSigner';
+import { RequestPromiseOptions } from 'request-promise';
 
 const PAGE_LIMIT = 25;
 
 interface PayResponse {
-  count?: number
-};
+  count?: number;
+}
 
 interface RequestResponse {
-  status: number,
-  object: PayResponse | string
-};
+  status: number;
+  object: PayResponse | string;
+}
 
 export interface AppSpecificPayClient {
-  list: (resource: string) => Promise<Array<object>>,
-  get: (resource: string) => Promise<string|object>,
-  post: (resource: string, object: object) => Promise<string|object>,
-  put: (resource: string, object: object) => Promise<string|object>,
-  del: (resource: string) => Promise<string|object>
-};
+  list: (resource: string) => Promise<Array<object>>;
+  get: (resource: string) => Promise<string|object>;
+  post: (resource: string, object: object) => Promise<string|object>;
+  put: (resource: string, object: object) => Promise<string|object>;
+  del: (resource: string) => Promise<string|object>;
+}
 
 export class PayClient {
-  apiUrl: string;
-  config: { timeout?: number};
-  sign: HMACSigner;
+  private readonly apiUrl: string;
+  private readonly config: { timeout?: number};
+  private readonly sign: HMACSigner;
 
   constructor(apiUrl: string, token: string, secret: string, config: { timeout?: number } = {}) {
     if (!apiUrl) throw new Error('PayClient requires apiUrl');
@@ -54,13 +53,13 @@ export class PayClient {
    *
    * @return {Object} the headers objects
    */
-  getHeaders(method: string, resource: string, payload?: object): object {
+  private getHeaders(method: string, resource: string, payload?: object): object {
     return {
       'Authorization': this.sign(
         method,
         resource,
         'application/json',
-        payload ? JSON.stringify(payload) : undefined
+        payload ? JSON.stringify(payload) : undefined,
       ),
       'User-Agent': 'ClassyPay Node.JS',
       'Content-Type': payload ? 'application/json' : undefined,
@@ -78,7 +77,13 @@ export class PayClient {
    *
    * @return {Object} the options for the request
    */
-  getOptions(appId: string, method: string, resource: string, payload?: object, params?: object): ((UriOptions & RequestPromiseOptions) | (UrlOptions & RequestPromiseOptions)) {
+  private getOptions(
+    appId: string,
+    method: string,
+    resource: string,
+    payload?: object,
+    params?: object)
+    : ((UriOptions & RequestPromiseOptions) | (UrlOptions & RequestPromiseOptions)) {
     return {
       method,
       url: `${this.apiUrl}${resource}`,
@@ -86,7 +91,7 @@ export class PayClient {
       body: payload ? JSON.stringify(payload) : undefined,
       timeout: this.config.timeout,
       headers: this.getHeaders(method, resource, payload),
-      resolveWithFullResponse: true
+      resolveWithFullResponse: true,
     };
   }
 
@@ -98,28 +103,36 @@ export class PayClient {
    * @param {String} resource the pay resource
    * @param {Object} payload the payload for the request
    * @param {Object} params the parameterspayload) : null,
-      timeout: this.config.timeout,
-      headers: this.getHeaders(method, resource, payload),
-      resolveWithFullResponse: true, for the request
+   *  timeout: this.config.timeout,
+   *  headers: this.getHeaders(method, resource, payload),
+   *  resolveWithFullResponse: true, for the request
    *
    * @return {Promise} result of the request, including parsed body if JSON
    */
-  async request(appId: string, method: string, resource: string, payload?: object, params?: object): Promise<RequestResponse> {
+  private async request(
+    appId: string,
+    method: string,
+    resource: string,
+    payload?: object,
+    params?: object)
+    : Promise<RequestResponse> {
     if (!_.isString(appId)) {
       throw new Error('App ID must be provided as string to avoid losing precision');
     }
     if (!resource.match(/^\/[\/A-Za-z0-9\\-]*$/)) {
       throw new Error(`Invalid resource: ${resource}`);
     }
-    let options = this.getOptions(appId, method, resource, payload, params);
+    const options = this.getOptions(appId, method, resource, payload, params);
     const response = await req(options);
     const status = _.get(response, 'statusCode');
-    if (status != 200) {
+    if (status !== 200) {
       throw new Error(`Server returned error code ${status} from ${method} ${resource}: ${response.body}`);
     }
     return {
       status,
-      object: (response.body && response.headers['content-type'].includes('application/json')) ? JSON.parse(response.body) : response.body,
+      object: (response.body && response.headers['content-type'].includes('application/json')) ?
+        JSON.parse(response.body)
+        : response.body,
     };
   }
 
@@ -133,7 +146,7 @@ export class PayClient {
    *
    * @return {Promise} object of the request
    */
-  async forObject(appId: string, method: string, resource: string, body?: object): Promise<object|string> {
+  private async forObject(appId: string, method: string, resource: string, body?: object): Promise<object|string> {
     return (await this.request(appId, method, resource, body)).object;
   }
 
@@ -145,16 +158,22 @@ export class PayClient {
    *
    * @return {Promise} objects of the request
    */
-  async forList(appId: string, resource: string): Promise<Array<object>> {
+  private async forList(appId: string, resource: string): Promise<Array<object>> {
     const responseObj = (await this.request(appId, 'GET', `${resource}/count`)).object;
-    if (typeof responseObj === "string") {
+    if (typeof responseObj === 'string') {
       throw new Error(`Expected server response with count, instead got: ${responseObj}`);
     } else {
       const max = responseObj.count;
       const results = await Promise.map(_.range(0, max, PAGE_LIMIT),
         async page => {
-          const innerResponse = await this.request(appId, 'GET', resource, undefined, {limit: PAGE_LIMIT, offset: page})
-          if (innerResponse.status != 200 || typeof innerResponse.object === "string") {
+          const innerResponse = await this.request(
+            appId,
+            'GET',
+            resource,
+            undefined,
+            {limit: PAGE_LIMIT, offset: page},
+          );
+          if (innerResponse.status !== 200 || typeof innerResponse.object === 'string') {
             throw new Error(`Expected server response with object, instead got: ${innerResponse}`);
           } else {
             return innerResponse.object;
@@ -174,7 +193,7 @@ export class PayClient {
    *
    * @return {Array} an array of objects
    */
-  async list(appId: string, resource: string): Promise<Array<object>> {
+  public async list(appId: string, resource: string): Promise<Array<object>> {
     return await this.forList(appId, resource);
   }
 
@@ -186,7 +205,7 @@ export class PayClient {
    *
    * @return {Object} an object
    */
-  async get(appId: string, resource: string): Promise<string|object> {
+  public async get(appId: string, resource: string): Promise<string|object> {
     return await this.forObject(appId, 'GET', resource);
   }
 
@@ -199,7 +218,7 @@ export class PayClient {
    *
    * @return {Object} the created object
    */
-  async post(appId: string, resource: string, object: object): Promise<string|object> {
+  public async post(appId: string, resource: string, object: object): Promise<string|object> {
     return await this.forObject(appId, 'POST', resource, object);
   }
 
@@ -212,7 +231,7 @@ export class PayClient {
    *
    * @return {Object} the updated object
    */
-  async put(appId: string, resource: string, object: object): Promise<string|object> {
+  public async put(appId: string, resource: string, object: object): Promise<string|object> {
     return await this.forObject(appId, 'PUT', resource, object);
   }
 
@@ -224,7 +243,7 @@ export class PayClient {
    *
    * @return {Object} the removed object
    */
-  async del(appId: string, resource: string): Promise<string|object> {
+  public async del(appId: string, resource: string): Promise<string|object> {
     return await this.forObject(appId, 'DELETE', resource);
   }
 
@@ -234,7 +253,7 @@ export class PayClient {
    * @param {String} appId app ID
    * @returns {Object} Pay Client
    */
-  forAppId(appId: string): AppSpecificPayClient {
+  public forAppId(appId: string): AppSpecificPayClient {
     if (!_.isString(appId)) {
       throw new Error('App ID must be provided as string to avoid losing precision');
     }
@@ -244,7 +263,7 @@ export class PayClient {
       get: resource => this.get(appId, resource),
       post: (resource, object) => this.post(appId, resource, object),
       put: (resource, object) => this.put(appId, resource, object),
-      del: resource => this.del(appId, resource)
+      del: resource => this.del(appId, resource),
     };
   }
 }

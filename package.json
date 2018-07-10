@@ -4,8 +4,10 @@
   "description": "Shared tools used in ClassyPay-related projects",
   "main": "lib/index.js",
   "scripts": {
-    "test": "./node_modules/istanbul/lib/cli.js cover _mocha -- -r ts-node/register test/**/test*.ts test/test*.ts",
-    "build": "tsc -p ./",
+    "test": "yarn run lint && find test/ -iname \"test*.ts\" | xargs ./node_modules/istanbul/lib/cli.js cover _mocha -- -r ts-node/register",
+    "build": "yarn run lint && tsc -p ./",
+    "tslint": "find src/ test/ -iname \"*.ts\" | xargs tslint -c ./tslint.json",
+    "lint": "yarn run tslint",
     "prepublish": "yarn run clean && yarn run build",
     "clean": "rm -rfv lib"
   },
@@ -30,6 +32,7 @@
     "@types/bunyan": "^1.8.4",
     "@types/events": "^1.2.0",
     "@types/lodash": "^4.14.110",
+    "@types/node": "^10.3.6",
     "@types/request": "^2.47.1",
     "@types/request-promise": "^4.1.41",
     "aws-lambda": "^0.1.2",
@@ -48,12 +51,9 @@
   "devDependencies": {
     "@types/mocha": "^5.2.3",
     "@types/mock-require": "^2.0.0",
-    "@types/node": "^10.3.6",
     "@types/rewire": "^2.5.28",
     "@types/should-sinon": "^0.0.3",
     "@types/sinon": "^5.0.1",
-    "eslint": "^4.17.0",
-    "eslint-config-google": "^0.9.1",
     "istanbul": "1.1.0-alpha.1",
     "mocha": "^5.1.1",
     "mocha-cli": "^1.0.1",
@@ -62,6 +62,7 @@
     "should": "^13.2.1",
     "should-sinon": "^0.0.6",
     "sinon": "^5.0.7",
+    "tslint": "^5.10.0",
     "typescript": "^2.9.2",
     "typings": "^2.1.1"
   },

@@ -5,12 +5,12 @@ import Lock from './utils/Lock';
 import DataSource, {DataSourceConfig} from './DataSource';
 
 export class DataSourceManager {
-  lock: Lock = new Lock();
-  dataSource: DataSource;
-  config: DataSourceConfig;
-  initialized: boolean = false;
-  querying: boolean = false;
-  cache: { values: { [index: string] : any }, missing: { [index: string] : any } } = {values: {}, missing: {}};
+  private lock: Lock = new Lock();
+  private dataSource: DataSource;
+  private config: DataSourceConfig;
+  private initialized: boolean = false;
+  private querying: boolean = false;
+  private cache: { values: { [index: string]: any }, missing: { [index: string]: any } } = {values: {}, missing: {}};
 
   constructor(dataSource: DataSource, config: DataSourceConfig) {
     if (!dataSource) {
@@ -24,14 +24,11 @@ export class DataSourceManager {
     this.config = config;
   }
 
-  async _init() {
-    if (!this.initialized) {
-      await this.dataSource.initialize(this.config);
-      this.initialized = true;
-    }
+  public getQuerying() {
+    return this.querying;
   }
 
-  async get(key: string): Promise<any> {
+  public async get(key: string): Promise<any> {
     return await this.lock.lockForPath(async () => {
       this.querying = true;
       try {
@@ -49,6 +46,13 @@ export class DataSourceManager {
         this.querying = false;
       }
     });
+  }
+
+  private async _init() {
+    if (!this.initialized) {
+      await this.dataSource.initialize(this.config);
+      this.initialized = true;
+    }
   }
 }
 

@@ -4,8 +4,8 @@ import {SinonStub} from 'sinon';
 require('should-sinon');
 import { promisify } from 'util';
 import mock = require('mock-require');
-import {ClassyAWSHandler} from "../../src/aws/handler";
-import * as AWSLambda from "aws-lambda";
+import { ClassyAWSHandler } from '../../src/aws/handler';
+import * as AWSLambda from 'aws-lambda';
 
 type LambdaHandler = (event: any, context: AWSLambda.Context, callback: AWSLambda.Callback<any>) => void;
 type ClassyLambdaHandlerGenerator = (handler: ClassyAWSHandler, appName: string) => LambdaHandler;
@@ -18,7 +18,7 @@ describe('AWS Handler', () => {
     initialize: SinonStub;
   }|undefined;
   let bugsnag: {
-    notify: SinonStub
+    notify: SinonStub;
   }|undefined;
   let awsHandler: ClassyLambdaHandlerGenerator|undefined;
 
@@ -33,18 +33,11 @@ describe('AWS Handler', () => {
 
     bugsnag.notify.yields(null, {});
 
-    mock('../../src/utils/bugsnagFactory', bugsnagFactory)
-    mock('../../src/aws/AWSConfig', { default: AWSConfigStub });
+    mock('../../src/utils/bugsnagFactory', bugsnagFactory);
+    mock('../../src/aws/AWSConfig', { AWSConfig: AWSConfigStub });
     mock('bugsnag', bugsnag);
 
-    /*
-    revert = awsHandler.__set__({
-      AWSConfig: AWSConfigStub,
-      bugsnagFactory
-    });
-    */
-
-    awsHandler = <ClassyLambdaHandlerGenerator> mock.reRequire('../../src/aws/handler').default;
+    awsHandler = <ClassyLambdaHandlerGenerator> mock.reRequire('../../src/aws/handler').handlerGenerator;
   });
 
   afterEach(() => {
@@ -52,11 +45,13 @@ describe('AWS Handler', () => {
   });
 
   it('Success case', async () => {
-    if (!awsHandler || !bugsnagFactory || !AWSConfigStub || !AWSConfigGetStub || !bugsnag) throw new Error('Test wasn\'t correctly initialized');
+    if (!awsHandler || !bugsnagFactory || !AWSConfigStub || !AWSConfigGetStub || !bugsnag) {
+      throw new Error('Test wasn\'t correctly initialized');
+    }
     const handlerStub = sinon.stub();
     handlerStub.resolves('HELLO');
 
-    const result = await (<any>promisify(awsHandler(handlerStub, 'APP')))({}, {});
+    const result = await (<any> promisify(awsHandler(handlerStub, 'APP')))({}, {});
     result.should.be.eql('HELLO');
 
     bugsnagFactory.initialize.should.have.been.calledOnce();
@@ -69,11 +64,13 @@ describe('AWS Handler', () => {
   });
 
   it('Multiple handler calls should invoke initialization only once', async () => {
-    if (!awsHandler || !bugsnagFactory || !AWSConfigStub || !AWSConfigGetStub || !bugsnag) throw new Error('Test wasn\'t correctly initialized');
+    if (!awsHandler || !bugsnagFactory || !AWSConfigStub || !AWSConfigGetStub || !bugsnag) {
+      throw new Error('Test wasn\'t correctly initialized');
+    }
     const handlerStub = sinon.stub();
     handlerStub.resolves('HELLO');
 
-    const handler = <any>promisify(awsHandler(handlerStub, 'APP'));
+    const handler = <any> promisify(awsHandler(handlerStub, 'APP'));
     await handler({}, {});
     await handler({}, {});
     await handler({}, {});
@@ -88,13 +85,15 @@ describe('AWS Handler', () => {
   });
 
   it('Error should propagate correctly', async () => {
-    if (!awsHandler || !bugsnagFactory || !AWSConfigStub || !AWSConfigGetStub || !bugsnag) throw new Error('Test wasn\'t correctly initialized');
+    if (!awsHandler || !bugsnagFactory || !AWSConfigStub || !AWSConfigGetStub || !bugsnag) {
+      throw new Error('Test wasn\'t correctly initialized');
+    }
     const handlerStub = sinon.stub();
     handlerStub.rejects(new Error('There was a problem'));
 
     let error;
     try {
-      await (<any>promisify(awsHandler(handlerStub, 'APP')))({}, {});
+      await (<any> promisify(awsHandler(handlerStub, 'APP')))({}, {});
     } catch (e) {
       error = e;
     }
@@ -111,13 +110,15 @@ describe('AWS Handler', () => {
   });
 
   it('Wraps non-error object throwables in an Error object', async () => {
-    if (!awsHandler || !bugsnagFactory || !AWSConfigStub || !AWSConfigGetStub || !bugsnag) throw new Error('Test wasn\'t correctly initialized');
+    if (!awsHandler || !bugsnagFactory || !AWSConfigStub || !AWSConfigGetStub || !bugsnag) {
+      throw new Error('Test wasn\'t correctly initialized');
+    }
     const handlerStub = sinon.stub();
     handlerStub.rejects({});
 
     let error;
     try {
-      await (<any>promisify(awsHandler(handlerStub, 'APP')))({}, {});
+      await (<any> promisify(awsHandler(handlerStub, 'APP')))({}, {});
     } catch (e) {
       error = e;
     }

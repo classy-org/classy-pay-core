@@ -1,34 +1,34 @@
 import sinon = require('sinon');
+import { SinonStub } from 'sinon';
 import should = require('should');
 require('should-sinon');
 import mock = require('mock-require');
-import {SinonStub} from "sinon";
 
 type initializeFunction = (appName: string, key: string, releaseStage: string) => Promise<void>;
 
 describe('Bugsnag Factory', () => {
-  let bugsnag = {
+  const bugsnag = {
     register: () => {},
     on: () => {},
-    notify: () => {}
+    notify: () => {},
   };
-  let process = {
+  const process = {
     listeners: () => {},
     removeListener: () => {},
     on: () => {},
     env: {
-      BB_COMMIT: 'BB_COMMIT'
-    }
+      BB_COMMIT: 'BB_COMMIT',
+    },
   };
   let processStubs: {
-    listeners: SinonStub,
-    removeListener: SinonStub
-    on: SinonStub
+    listeners: SinonStub;
+    removeListener: SinonStub;
+    on: SinonStub;
   } | undefined;
   let bugsnagStubs: {
-    register: SinonStub,
-    on: SinonStub,
-    notify: SinonStub
+    register: SinonStub;
+    on: SinonStub;
+    notify: SinonStub;
   } | undefined;
   let initialize: initializeFunction|undefined;
 
@@ -36,14 +36,14 @@ describe('Bugsnag Factory', () => {
     processStubs = {
       listeners: sinon.stub(process, 'listeners'),
       removeListener: sinon.stub(process, 'removeListener'),
-      on: sinon.stub(process, 'on')
+      on: sinon.stub(process, 'on'),
     };
     processStubs.listeners.returns(['Listener1', 'Listener2']);
 
     bugsnagStubs = {
       register: sinon.stub(bugsnag, 'register'),
       on: sinon.stub(bugsnag, 'on'),
-      notify: sinon.stub(bugsnag, 'notify')
+      notify: sinon.stub(bugsnag, 'notify'),
     };
 
     mock('process', process);
@@ -64,7 +64,7 @@ describe('Bugsnag Factory', () => {
     processStubs.removeListener.should.have.been.calledTwice();
     processStubs.on.should.have.been.calledTwice();
     processStubs.on.getCall(0).args[0].should.be.eql('uncaughtException');
-    processStubs.on.getCall(1).args[0].should.be.eql('unhandledRejection');;
+    processStubs.on.getCall(1).args[0].should.be.eql('unhandledRejection');
   });
 
   it('Should error when reconfigured', async () => {

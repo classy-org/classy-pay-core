@@ -3,8 +3,8 @@ import should = require('should');
 require('should-sinon');
 import _ = require('lodash');
 import Config from '../src/Config';
-import {SinonMock} from "sinon";
-import DataSource, {DataSourceConfig} from "../src/DataSource";
+import { SinonMock } from 'sinon';
+import { DataSource, DataSourceConfig } from '../src/DataSource';
 
 describe('Config', () => {
   let config: Config|undefined;
@@ -15,7 +15,7 @@ describe('Config', () => {
     dataSources = _.map(_.range(2), () => ({
       initialize: (config: DataSourceConfig) => new Promise<void>(resolve => resolve()),
       get: (key: string) => new Promise<void>(resolve => resolve()),
-      name: () => 'mock'
+      name: () => 'mock',
     }));
     dataSourceMocks = _.map(dataSources, dataSource => (sinon.mock(dataSource)));
     config = new Config(dataSources);

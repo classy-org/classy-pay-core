@@ -1,4 +1,3 @@
-'use strict';
 require('source-map-support').install();
 
 import * as _ from 'lodash';
@@ -6,24 +5,23 @@ import * as _ from 'lodash';
 type CriticalPath = () => Promise<any>;
 
 interface LockWaiter {
-  f: CriticalPath,
-  resolve: (value: any) => void,
-  reject: (error: any) => void
-};
+  f: CriticalPath;
+  resolve: (value: any) => void;
+  reject: (error: any) => void;
+}
 
 export class Lock {
-  executing: boolean = false;
-  waiters: Array<LockWaiter> = [];
+  private executing: boolean = false;
+  private waiters: Array<LockWaiter> = [];
 
-  lockForPath(f: CriticalPath) {
-    const promise = new Promise((resolve, reject) => {
+  public async lockForPath(f: CriticalPath) {
+    return await new Promise((resolve, reject) => {
       this.waiters.push({f, resolve, reject});
       this._execute();
     });
-    return promise;
   }
 
-  async _execute() {
+  private async _execute() {
     if (this.executing) {
       return;
     }

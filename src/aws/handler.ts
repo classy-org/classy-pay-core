@@ -6,16 +6,16 @@ import * as AWSLambda from 'aws-lambda';
 import * as bugsnag from 'bugsnag';
 
 import * as BugsnagFactory from '../utils/bugsnagFactory';
-import Once from '../utils/Once';
-import AWSConfig from "./AWSConfig";
-import Config from "../Config";
+import { Once } from '../utils/Once';
+import { AWSConfig } from './AWSConfig';
+import { Config } from '../Config';
 
 export type ClassyAWSHandler = (event: any, context: AWSLambda.Context, config: Config) => any;
 
 export const handlerGenerator = (handler: ClassyAWSHandler, appName: string) => {
   let config: Config;
 
-  let once = new Once(async () => {
+  const once = new Once(async () => {
     config = new AWSConfig(appName);
     await BugsnagFactory.initialize(appName, await config.get('BUGSNAG_LAMBDAS_KEY'), await config.get('stage'));
   });

@@ -1,10 +1,9 @@
-'use strict';
 require('source-map-support').install();
 
 import {DataSource, DataSourceConfig} from '../DataSource';
 
 class NameDataSource extends DataSource {
-  _name: string;
+  private _name: string;
 
   constructor(name: string) {
     super();
@@ -14,14 +13,14 @@ class NameDataSource extends DataSource {
     this._name = name;
   }
 
-  async initialize(config: DataSourceConfig) {
+  public async initialize(config: DataSourceConfig) {
   }
 
-  async get(key: string): Promise<string|undefined> {
+  public async get(key: string): Promise<string|undefined> {
     return key === 'name' ? this._name : undefined;
   }
 
-  name(): string {
+  public name(): string {
     return 'Name';
   }
 }
