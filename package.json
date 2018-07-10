@@ -63,8 +63,7 @@
     "should-sinon": "^0.0.6",
     "sinon": "^5.0.7",
     "tslint": "^5.10.0",
-    "typescript": "^2.9.2",
-    "typings": "^2.1.1"
+    "typescript": "^2.9.2"
   },
   "files": [
     "lib"
