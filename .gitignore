@@ -66,9 +66,8 @@ creds.example.json
 .idea
 .vscode
 
-# Babel compiled
+# TypeScript compiled
 lib/
-testlib/
 
 # Lockfiles
 package-lock.json
