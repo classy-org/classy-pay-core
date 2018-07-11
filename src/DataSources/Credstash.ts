@@ -1,7 +1,7 @@
 require('source-map-support').install();
 
-const Credstash = require('nodecredstash');
-const fs = require('fs');
+import Credstash = require('nodecredstash');
+import fs = require('fs');
 
 import { DataSource, DataSourceConfig } from '../DataSource';
 import { throttledRetrier } from '../utils/throttledRetrier';
@@ -24,7 +24,7 @@ class CredstashDataSource extends DataSource {
         this.getImpl = async key => (this.devCreds[key]);
       }
     } else {
-      const credstash = new Credstash({
+      const credstash = Credstash({
         table: [await config.get('stage'), 'pay', 'credstash'].join('-'),
         awsOpts: {
           region: await config.get('aws.region'),
