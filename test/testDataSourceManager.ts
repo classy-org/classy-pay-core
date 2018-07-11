@@ -3,7 +3,7 @@ import should = require('should');
 require('should-sinon');
 
 import { DataSourceManager } from '../src/DataSourceManager';
-import { DataSource, DataSourceConfig } from '../lib/src/DataSource';
+import { DataSource, DataSourceConfig } from '../src/DataSource';
 
 describe('Data Source Manager', async () => {
   it('Success Case', async () => {

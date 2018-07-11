@@ -33,6 +33,7 @@
     "@types/events": "^1.2.0",
     "@types/lodash": "^4.14.110",
     "@types/node": "^10.3.6",
+    "@types/nodecredstash": "^2.0.0",
     "@types/request": "^2.47.1",
     "@types/request-promise": "^4.1.41",
     "aws-lambda": "^0.1.2",
