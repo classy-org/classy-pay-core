@@ -31,3 +31,7 @@ export const normalizeUrl = (inputUrl: string): string => {
     throw new Error(`URL "${inputUrl}" didn't look like a URL and couldn't be normalized`);
   }
 };
+
+const jsonParse = require('json-bigint')({ storeAsString: true }).parse;
+
+export const JSONParseBig = (json: string): any => require('json-bigint')({ storeAsString: true }).parse(json);

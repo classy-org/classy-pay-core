@@ -1,8 +1,6 @@
 import request = require('request-promise');
 import { OAuth2 } from 'oauth';
-import { normalizeUrl } from './utils/utils';
-
-const jsonParse = require('json-bigint')({ storeAsString: true }).parse;
+import { normalizeUrl, JSONParseBig } from './utils/utils';
 
 export type MethodType = 'GET'|'POST'|'PUT'|'DELETE';
 
@@ -77,7 +75,7 @@ export class APIClient {
     if (response.statusCode !== 200) {
       throw new Error(`API client received status code ${response.statusCode}: ${response.body}`);
     } else {
-      return response.body ? jsonParse(response.body) : undefined;
+      return response.body ? JSONParseBig(response.body) : undefined;
     }
   }
 
