@@ -8,7 +8,7 @@
     "build": "yarn run lint && tsc -p ./",
     "tslint": "find src/ test/ -iname \"*.ts\" | xargs tslint -c ./tslint.json",
     "lint": "yarn run tslint",
-    "prepublish": "yarn run clean && yarn run build",
+    "prepublish": "yarn run clean && yarn run test && yarn run build",
     "clean": "rm -rfv lib"
   },
   "repository": {
