@@ -59,7 +59,7 @@ describe('AWS Handler', () => {
 
     bugsnagFactory.initialize.should.have.been.calledOnce();
     AWSConfigStub.should.be.calledOnce();
-    AWSConfigGetStub.should.be.calledThrice();
+    AWSConfigGetStub.getCalls().length.should.be.eql(3);
 
     AWSConfigGetStub.getCall(0).args.should.be.eql(['bugsnagEnabled']);
     AWSConfigGetStub.getCall(1).args.should.be.eql(['BUGSNAG_LAMBDAS_KEY']);
@@ -84,7 +84,7 @@ describe('AWS Handler', () => {
 
     bugsnagFactory.initialize.should.be.calledOnce();
     AWSConfigStub.should.be.calledOnce();
-    AWSConfigGetStub.should.be.calledThrice();
+    AWSConfigGetStub.getCalls().length.should.be.eql(3);
 
     AWSConfigGetStub.getCall(0).args.should.be.eql(['bugsnagEnabled']);
     AWSConfigGetStub.getCall(1).args.should.be.eql(['BUGSNAG_LAMBDAS_KEY']);
@@ -113,11 +113,12 @@ describe('AWS Handler', () => {
 
     bugsnagFactory.initialize.should.be.calledOnce();
     AWSConfigStub.should.be.calledOnce();
-    AWSConfigGetStub.should.be.calledThrice();
+    AWSConfigGetStub.getCalls().length.should.be.eql(4);
 
     AWSConfigGetStub.getCall(0).args.should.be.eql(['bugsnagEnabled']);
     AWSConfigGetStub.getCall(1).args.should.be.eql(['BUGSNAG_LAMBDAS_KEY']);
     AWSConfigGetStub.getCall(2).args.should.be.eql(['stage']);
+    AWSConfigGetStub.getCall(3).args.should.be.eql(['bugsnagEnabled']);
 
     bugsnag.notify.callCount.should.be.eql(1);
 
@@ -144,11 +145,12 @@ describe('AWS Handler', () => {
 
     bugsnagFactory.initialize.should.be.calledOnce();
     AWSConfigStub.should.be.calledOnce();
-    AWSConfigGetStub.should.be.calledThrice();
+    AWSConfigGetStub.getCalls().length.should.be.eql(4);
 
     AWSConfigGetStub.getCall(0).args.should.be.eql(['bugsnagEnabled']);
     AWSConfigGetStub.getCall(1).args.should.be.eql(['BUGSNAG_LAMBDAS_KEY']);
     AWSConfigGetStub.getCall(2).args.should.be.eql(['stage']);
+    AWSConfigGetStub.getCall(3).args.should.be.eql(['bugsnagEnabled']);
 
     bugsnag.notify.callCount.should.be.eql(1);
 
