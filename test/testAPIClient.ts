@@ -5,6 +5,7 @@ import mock = require('mock-require');
 
 import { APIClient } from '../src/APIClient';
 import { oauth2tokenCallback } from 'oauth';
+import { normalizeUrl, JSONParseBig } from '../src/utils/utils';
 
 const SUCCESSFUL_EMPTY_JSON_RESPONSE = {
   statusCode: 200,
@@ -71,7 +72,7 @@ describe('API Client', () => {
   let apiClient: APIClient;
 
   beforeEach(() => {
-    mock('request-promise', requestStub);
+    mock('../src/utils/utils', {requestWithLogs: requestStub, normalizeUrl, JSONParseBig});
     mock('oauth', oauth);
     const mockAPIClient = mock.reRequire('../src/APIClient');
     apiClient = <APIClient> new mockAPIClient.APIClient(
@@ -113,7 +114,7 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-    }]);
+    }, undefined]);
   });
 
   it('POST request', async () => {
@@ -143,7 +144,7 @@ describe('API Client', () => {
         'Content-Type': 'application/json',
       },
       body: '{"fake":"body"}',
-    }]);
+    }, undefined]);
   });
 
   it('PUT request', async () => {
@@ -173,7 +174,7 @@ describe('API Client', () => {
         'Content-Type': 'application/json',
       },
       body: '{"fake":"body"}',
-    }]);
+    }, undefined]);
   });
 
   it('DELETE request', async () => {
@@ -201,7 +202,7 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-    }]);
+    }, undefined]);
   });
 
   it('Invalid GET request', async () => {
@@ -234,7 +235,7 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-    }]);
+    }, undefined]);
 
     should.not.exist(result);
     should.exist(error);

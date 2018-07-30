@@ -8,8 +8,8 @@ export class AWSConfig extends Config {
       require('../DataSources/Name')(appName),
       require('../DataSources/Environment'),
       require('../DataSources/Credstash'),
-      require('../DataSources/Clients'),
       require('../DataSources/Logging'),
+      require('../DataSources/Clients'),
       require('../DataSources/Replacer'),
     ]);
   }

@@ -1,6 +1,6 @@
-import request = require('request-promise');
 import { OAuth2 } from 'oauth';
-import { normalizeUrl, JSONParseBig } from './utils/utils';
+import * as Logger from 'bunyan';
+import { normalizeUrl, JSONParseBig, requestWithLogs } from './utils/utils';
 
 export type MethodType = 'GET'|'POST'|'PUT'|'DELETE';
 
@@ -10,6 +10,7 @@ export class APIClient {
   private readonly oauthUrl: string;
   private readonly apiUrl: string;
   private readonly timeout: number;
+  private readonly log?: Logger;
 
   /**
    * Builds an API client
@@ -20,17 +21,22 @@ export class APIClient {
    * @param {string} apiUrl api URL
    * @param {number} timeout HTTP request timeout, or 120 minutes if unspecified
    */
-  constructor(clientId: string, clientSecret: string, oauthUrl: string, apiUrl: string, timeout: number = 120000) {
+  constructor(
+    clientId: string,
+    clientSecret: string,
+    oauthUrl: string,
+    apiUrl: string,
+    config: { timeout?: number, log?: Logger } = {}) {
     if (!clientId) throw Error('Cannot construct APIClient with null clientId');
     if (!clientSecret) throw Error('Cannot construct APIClient with null clientSecret');
     if (!oauthUrl) throw Error('Cannot construct APIClient with null oauthUrl');
     if (!apiUrl) throw Error('Cannot construct APIClient with null apiUrl');
-    if (!timeout) throw Error('Cannot construct APIClient with null timeout');
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.oauthUrl = oauthUrl;
     this.apiUrl = apiUrl;
-    this.timeout = timeout;
+    this.timeout = config.timeout ? config.timeout : 120000;
+    this.log = config.log;
   }
 
   private async getBearer(authParams: any = { grant_type: 'client_credentials' }): Promise<string> {
@@ -71,7 +77,7 @@ export class APIClient {
       options.body = JSON.stringify(payload);
     }
 
-    const response = await request(options);
+    const response = await requestWithLogs(options, this.log);
     if (response.statusCode !== 200) {
       throw new Error(`API client received status code ${response.statusCode}: ${response.body}`);
     } else {

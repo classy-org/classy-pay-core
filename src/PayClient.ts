@@ -3,11 +3,11 @@ import {UriOptions, UrlOptions} from 'request';
 require('source-map-support').install();
 
 import { Promise } from 'bluebird';
-import req = require('request-promise');
 import * as _ from 'lodash';
+import * as Logger from 'bunyan';
 
 import { CreateHMACSigner, HMACSigner } from './utils/hmac256AuthSigner';
-import { RequestPromiseOptions } from 'request-promise';
+import {RequestOptions, requestWithLogs} from './utils/utils';
 
 const PAGE_LIMIT = 25;
 
@@ -32,14 +32,16 @@ export class PayClient {
   private readonly apiUrl: string;
   private readonly config: { timeout?: number};
   private readonly sign: HMACSigner;
+  private readonly log?: Logger;
 
-  constructor(apiUrl: string, token: string, secret: string, config: { timeout?: number } = {}) {
+  constructor(apiUrl: string, token: string, secret: string, config: { timeout?: number, log?: Logger } = {}) {
     if (!apiUrl) throw new Error('PayClient requires apiUrl');
     if (!token) throw new Error('PayClient requires token');
     if (!secret) throw new Error('PayClient requires secret');
 
     this.apiUrl = apiUrl;
     this.config = config;
+    this.log = config.log;
 
     this.sign = CreateHMACSigner('CWS', token, secret);
   }
@@ -63,7 +65,7 @@ export class PayClient {
     resource: string,
     payload?: object,
     params?: object)
-    : ((UriOptions & RequestPromiseOptions) | (UrlOptions & RequestPromiseOptions)) {
+    : RequestOptions {
     return {
       method,
       url: `${this.apiUrl}${resource}`,
@@ -89,16 +91,19 @@ export class PayClient {
       throw new Error(`Invalid resource: ${resource}`);
     }
     const options = this.getOptions(appId, method, resource, payload, params);
-    const response = await req(options);
-    const status = _.get(response, 'statusCode');
+
+    const response = await requestWithLogs(options, this.log);
+    const status = response.statusCode;
     if (status !== 200) {
-      throw new Error(`Server returned error code ${status} from ${method} ${resource}: ${response.body}`);
+      throw new Error(`Server returned error code ${status} from ${method} ${resource}: ${response && response.body}`);
     }
+
     return {
       status,
-      object: (response.body && response.headers['content-type'].includes('application/json')) ?
+      object: (response.body && response.headers && response.headers['content-type'] &&
+        _.includes(response.headers['content-type'], 'application/json')) ?
         JSON.parse(response.body)
-        : response.body,
+        : _.get(response, 'body'),
     };
   }
 
