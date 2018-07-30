@@ -18,6 +18,7 @@ export class ClientDataSource extends DataSource {
         await config.get('PAY_TOKEN'),
         await config.get('PAY_SECRET'), {
           timeout: await config.get('pay.timeout'),
+          log: await config.get('pay.log') ? await config.get('Logger') : undefined,
         });
     }
 
@@ -27,7 +28,10 @@ export class ClientDataSource extends DataSource {
         await config.get('APIV2_CLIENT_SECRET'),
         await config.get('api.oauthUrl'),
         await config.get('api.apiUrl'),
-        await config.get('api.timeout'),
+        {
+          timeout: await config.get('api.timeout'),
+          log: await config.get('api.log') ? await config.get('Logger') : undefined,
+        },
       );
     }
   }

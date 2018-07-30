@@ -56,7 +56,7 @@ describe('PayClient', () => {
     mock('../src/utils/hmac256AuthSigner', {
       CreateHMACSigner: () => signStub,
     });
-    mock('request-promise', <StubFunction> requestStub);
+    mock('../src/utils/utils', {requestWithLogs: <StubFunction> requestStub});
 
     const mockPayClient = mock.reRequire('../src/PayClient');
     payClient = (<PayClient> new mockPayClient.default('##URL##', '##TOKEN##', '##SECRET##'));
