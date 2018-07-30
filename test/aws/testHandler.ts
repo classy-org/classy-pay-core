@@ -27,6 +27,9 @@ describe('AWS Handler', () => {
     AWSConfigStub.prototype.get = () => {};
     AWSConfigGetStub = sinon.stub(AWSConfigStub.prototype, 'get');
 
+    AWSConfigGetStub.withArgs('bugsnagEnabled').resolves(true);
+    AWSConfigGetStub.resolves('');
+
     bugsnagFactory = { initialize: sinon.stub() };
     bugsnag = { notify: sinon.stub() };
     bugsnagFactory.initialize.resolves(bugsnag);
@@ -56,7 +59,11 @@ describe('AWS Handler', () => {
 
     bugsnagFactory.initialize.should.have.been.calledOnce();
     AWSConfigStub.should.be.calledOnce();
-    AWSConfigGetStub.should.be.calledTwice();
+    AWSConfigGetStub.getCalls().length.should.be.eql(3);
+
+    AWSConfigGetStub.getCall(0).args.should.be.eql(['bugsnagEnabled']);
+    AWSConfigGetStub.getCall(1).args.should.be.eql(['BUGSNAG_LAMBDAS_KEY']);
+    AWSConfigGetStub.getCall(2).args.should.be.eql(['stage']);
 
     bugsnag.notify.callCount.should.be.eql(0);
 
@@ -77,7 +84,11 @@ describe('AWS Handler', () => {
 
     bugsnagFactory.initialize.should.be.calledOnce();
     AWSConfigStub.should.be.calledOnce();
-    AWSConfigGetStub.should.be.calledTwice();
+    AWSConfigGetStub.getCalls().length.should.be.eql(3);
+
+    AWSConfigGetStub.getCall(0).args.should.be.eql(['bugsnagEnabled']);
+    AWSConfigGetStub.getCall(1).args.should.be.eql(['BUGSNAG_LAMBDAS_KEY']);
+    AWSConfigGetStub.getCall(2).args.should.be.eql(['stage']);
 
     bugsnag.notify.callCount.should.be.eql(0);
 
@@ -102,7 +113,12 @@ describe('AWS Handler', () => {
 
     bugsnagFactory.initialize.should.be.calledOnce();
     AWSConfigStub.should.be.calledOnce();
-    AWSConfigGetStub.should.be.calledTwice();
+    AWSConfigGetStub.getCalls().length.should.be.eql(4);
+
+    AWSConfigGetStub.getCall(0).args.should.be.eql(['bugsnagEnabled']);
+    AWSConfigGetStub.getCall(1).args.should.be.eql(['BUGSNAG_LAMBDAS_KEY']);
+    AWSConfigGetStub.getCall(2).args.should.be.eql(['stage']);
+    AWSConfigGetStub.getCall(3).args.should.be.eql(['bugsnagEnabled']);
 
     bugsnag.notify.callCount.should.be.eql(1);
 
@@ -129,7 +145,12 @@ describe('AWS Handler', () => {
 
     bugsnagFactory.initialize.should.be.calledOnce();
     AWSConfigStub.should.be.calledOnce();
-    AWSConfigGetStub.should.be.calledTwice();
+    AWSConfigGetStub.getCalls().length.should.be.eql(4);
+
+    AWSConfigGetStub.getCall(0).args.should.be.eql(['bugsnagEnabled']);
+    AWSConfigGetStub.getCall(1).args.should.be.eql(['BUGSNAG_LAMBDAS_KEY']);
+    AWSConfigGetStub.getCall(2).args.should.be.eql(['stage']);
+    AWSConfigGetStub.getCall(3).args.should.be.eql(['bugsnagEnabled']);
 
     bugsnag.notify.callCount.should.be.eql(1);
 

@@ -16,7 +16,11 @@ export const handlerGenerator = (handler: ClassyAWSHandler, appName: string) => 
 
   const once = new Once(async () => {
     config = new AWSConfig(appName);
-    await BugsnagFactory.initialize(appName, await config.get('BUGSNAG_LAMBDAS_KEY'), await config.get('stage'));
+    const bugsnagEnabled = await config.get('bugsnagEnabled');
+
+    if (bugsnagEnabled) {
+      await BugsnagFactory.initialize(appName, await config.get('BUGSNAG_LAMBDAS_KEY'), await config.get('stage'));
+    }
   });
 
   return (event: any, context: AWSLambda.Context, callback: AWSLambda.Callback<any>) => {
@@ -29,7 +33,9 @@ export const handlerGenerator = (handler: ClassyAWSHandler, appName: string) => 
         result = await handler(event, context, config);
       } catch (e) {
         error = e.toString() === '[object Object]' ? new Error(JSON.stringify(e)) : e;
-        await promisify(bugsnag.notify)(error);
+        if (await config.get('bugsnagEnabled')) {
+          await promisify(bugsnag.notify)(error);
+        }
       } finally {
         callback(error, result);
       }

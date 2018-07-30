@@ -5,11 +5,13 @@ const yamljs = require('yamljs');
 const fs = require('fs');
 
 import {DataSource, DataSourceConfig} from '../DataSource';
+import {stringToBoolean} from '../utils/utils';
 
 class EnvironmentDataSource extends DataSource {
   private dir?: string = process.env.PWD;
   private stage: string = 'dev';
   private dryRun: boolean = false;
+  private bugsnagEnabled: boolean = true;
   private environment?: object;
 
   public async initialize(config: DataSourceConfig) {
@@ -21,7 +23,8 @@ class EnvironmentDataSource extends DataSource {
       this.stage = process.env.AWS_LAMBDA_FUNCTION_NAME.split('-')[2];
     }
 
-    this.dryRun = process.env.DRYRUN ? Boolean(process.env.DRYRUN) : this.dryRun;
+    this.dryRun = stringToBoolean(process.env.DRYRUN, this.dryRun);
+    this.bugsnagEnabled = stringToBoolean(process.env.BUGSNAG_ENABLED, this.bugsnagEnabled);
 
     const environment = {};
 
@@ -52,6 +55,8 @@ class EnvironmentDataSource extends DataSource {
         return this.stage;
       case 'dryRun':
         return this.dryRun;
+      case 'bugsnagEnabled':
+        return this.bugsnagEnabled;
       default:
         return _.get(this.environment, key, null);
     }
