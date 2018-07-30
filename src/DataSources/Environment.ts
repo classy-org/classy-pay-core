@@ -23,10 +23,8 @@ class EnvironmentDataSource extends DataSource {
       this.stage = process.env.AWS_LAMBDA_FUNCTION_NAME.split('-')[2];
     }
 
-    this.dryRun = process.env.DRYRUN ? stringToBoolean(process.env.DRYRUN) : this.dryRun;
-    this.bugsnagEnabled = process.env.BUGSNAG_ENABLED ?
-      stringToBoolean(process.env.BUGSNAG_ENABLED)
-      : this.bugsnagEnabled;
+    this.dryRun = stringToBoolean(process.env.DRYRUN, this.dryRun);
+    this.bugsnagEnabled = stringToBoolean(process.env.BUGSNAG_ENABLED, this.bugsnagEnabled);
 
     const environment = {};
 

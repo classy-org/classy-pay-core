@@ -33,7 +33,9 @@ export const handlerGenerator = (handler: ClassyAWSHandler, appName: string) => 
         result = await handler(event, context, config);
       } catch (e) {
         error = e.toString() === '[object Object]' ? new Error(JSON.stringify(e)) : e;
-        await promisify(bugsnag.notify)(error);
+        if (await config.get('bugsnagEnabled')) {
+          await promisify(bugsnag.notify)(error);
+        }
       } finally {
         callback(error, result);
       }

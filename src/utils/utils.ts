@@ -38,7 +38,7 @@ const jsonParse = require('json-bigint')({ storeAsString: true }).parse;
 
 export const JSONParseBig = (json: string): any => require('json-bigint')({ storeAsString: true }).parse(json);
 
-export const stringToBoolean = (input: string): boolean => {
+export const stringToBoolean = (input: string|undefined, defaultValue: boolean = false): boolean => {
   if (input) {
     if (_.toLower(input) === 'true') {
       return true;
@@ -47,6 +47,8 @@ export const stringToBoolean = (input: string): boolean => {
     if (isFinite(n) && !isNaN(n) && n > 0) {
       return true;
     }
+
+    return false;
   }
-  return false;
+  return defaultValue;
 };
