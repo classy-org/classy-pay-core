@@ -2,6 +2,7 @@ import * as Logger from 'bunyan';
 import request = require('request');
 import * as _ from 'lodash';
 import req = require('request-promise');
+import {StatusCodeError} from 'request-promise/errors';
 
 export const safeStrConcat = (strings: Array<any>): string => {
   let output = '';
@@ -57,18 +58,41 @@ const redactRequest = (obj: RequestOptions) => {
 
 export const requestWithLogs = async (options: RequestOptions, log?: Logger): Promise<request.Response> => {
   const redactedOptions = redactRequest(options);
+
+  let logString;
   if (log) {
-    log.info(redactedOptions, 'Issued HTTP request');
+    let location;
+    if ('url' in options) {
+      location = options.url;
+    } else if ('uri' in options) {
+      location = options.uri;
+    }
+    logString = `${redactedOptions.method} ${location}`;
+
+    log.info(redactedOptions, `Request ${logString}`);
   }
   let response: undefined|request.Response;
+  let error: undefined|Error;
   try {
-    return response = await req(options);
+    const retValue = await req(options);
+    response = retValue;
+    return retValue;
+  } catch (e) {
+    error = e;
+    throw e;
   } finally {
     if (log) {
-      if (_.get(response, 'statusCode') === 200) {
-        log.info({request: redactedOptions, response}, 'Received good response from request');
+      let statusCode = response ? response.statusCode : undefined;
+      if (!statusCode && error && 'statusCode' in error) {
+        statusCode = (<StatusCodeError> error).statusCode ? (<StatusCodeError> error).statusCode : undefined;
+      }
+      if (statusCode === 200 && error === undefined) {
+        log.info({request: redactedOptions, response}, `Response (Good) ${logString}`);
       } else {
-        log.error({request: redactedOptions, response}, 'Received bad response from request');
+        log.error(
+          {request: redactedOptions, response, error},
+          `Response (Bad${statusCode ? ' - ' + statusCode : ''}) ${logString}`,
+        );
       }
     }
   }
