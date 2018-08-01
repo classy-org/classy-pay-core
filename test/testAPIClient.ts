@@ -114,6 +114,7 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
+      resolveWithFullResponse: true,
     }, undefined]);
   });
 
@@ -144,6 +145,7 @@ describe('API Client', () => {
         'Content-Type': 'application/json',
       },
       body: '{"fake":"body"}',
+      resolveWithFullResponse: true,
     }, undefined]);
   });
 
@@ -174,6 +176,7 @@ describe('API Client', () => {
         'Content-Type': 'application/json',
       },
       body: '{"fake":"body"}',
+      resolveWithFullResponse: true,
     }, undefined]);
   });
 
@@ -202,6 +205,7 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
+      resolveWithFullResponse: true,
     }, undefined]);
   });
 
@@ -235,6 +239,7 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
+      resolveWithFullResponse: true,
     }, undefined]);
 
     should.not.exist(result);

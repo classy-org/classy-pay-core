@@ -67,6 +67,7 @@ export class APIClient {
         'Authorization': `Bearer ${bearer}`,
         'User-Agent': 'ClassyPay Node.JS',
       },
+      resolveWithFullResponse: true,
     };
 
     if (payload) {
