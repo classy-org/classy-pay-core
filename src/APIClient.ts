@@ -44,7 +44,7 @@ export class APIClient {
       const oauth2 = new OAuth2(
         this.clientId,
         this.clientSecret,
-        normalizeUrl(this.oauthUrl),
+        this.oauthUrl,
         undefined,
         '/oauth2/auth',
       );
