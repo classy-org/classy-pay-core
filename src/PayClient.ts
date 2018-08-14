@@ -33,8 +33,13 @@ export class PayClient {
   private readonly config: { timeout?: number};
   private readonly sign: HMACSigner;
   private readonly log?: Logger;
+  private readonly version?: string;
 
-  constructor(apiUrl: string, token: string, secret: string, config: { timeout?: number, log?: Logger } = {}) {
+  constructor(
+    apiUrl: string,
+    token: string,
+    secret: string,
+    config: { timeout?: number, log?: Logger, version?: string } = {}) {
     if (!apiUrl) throw new Error('PayClient requires apiUrl');
     if (!token) throw new Error('PayClient requires token');
     if (!secret) throw new Error('PayClient requires secret');
@@ -42,12 +47,13 @@ export class PayClient {
     this.apiUrl = apiUrl;
     this.config = config;
     this.log = config.log;
+    this.version = config.version;
 
     this.sign = CreateHMACSigner('CWS', token, secret);
   }
 
   private getHeaders(method: string, resource: string, payload?: object): object {
-    return {
+    const headers: any = {
       'Authorization': this.sign(
         method,
         resource,
@@ -57,6 +63,10 @@ export class PayClient {
       'User-Agent': 'ClassyPay Node.JS',
       'Content-Type': payload ? 'application/json' : undefined,
     };
+    if (this.version) {
+      headers['x-classypay-version'] = this.version;
+    }
+    return headers;
   }
 
   private getOptions(
