@@ -19,6 +19,7 @@ export class ClientDataSource extends DataSource {
         await config.get('PAY_SECRET'), {
           timeout: await config.get('pay.timeout'),
           log: await config.get('pay.log') ? await config.get('Logger') : undefined,
+          version: await config.get('pay.version') ? await config.get('pay.version') : undefined,
         });
     }
 
