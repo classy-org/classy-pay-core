@@ -15,6 +15,15 @@ const SUCCESSFUL_EMPTY_JSON_RESPONSE = {
   body: '{}',
 };
 
+const SUCCESSFUL_JSON_RESPONSE = (body: any, nextPage?: string) => ({
+  statusCode: 200,
+  headers: {
+    'content-type': ['application/json'],
+    'next_page_url': nextPage,
+  },
+  body: JSON.stringify(body),
+});
+
 const BAD_RESPONSE = {
   statusCode: 500,
   headers: {
@@ -117,6 +126,64 @@ describe('API Client', () => {
       resolveWithFullResponse: true,
     }, undefined]);
   });
+
+  it('GET request with pagination', async () => {
+    oauth2Stub.resolves('##BEARER_TOKEN##');
+    requestStub.onCall(0).resolves(SUCCESSFUL_JSON_RESPONSE(
+      [{a: 'b'}],
+      'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param&page=2'),
+    );
+    requestStub.onCall(1).resolves(SUCCESSFUL_JSON_RESPONSE(
+      [{c: 'd'}],
+      'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param&page=3'),
+    );
+    requestStub.onCall(2).resolves(SUCCESSFUL_JSON_RESPONSE([{e: 'f'}]));
+
+    const result = await apiClient.getAll('/some/path/to/something?q=some_query_param');
+
+    result.should.be.eql([{a: 'b'}, {c: 'd'}, {e: 'f'}]);
+    oauth2Stub.getCalls().length.should.be.eql(1);
+    oauth2Stub.getCalls()[0].args.should.be.eql([
+      '##ID##',
+      '##SECRET##',
+      'https://stagingapi.stayclassy.org/2.0',
+      '/oauth2/auth',
+      '',
+      { grant_type: 'client_credentials' },
+    ]);
+    requestStub.getCalls().length.should.be.eql(3);
+    requestStub.getCalls()[0].args.should.be.eql([{
+      url: 'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param',
+      timeout: 120000,
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ##BEARER_TOKEN##',
+        'User-Agent': 'ClassyPay Node.JS',
+      },
+      resolveWithFullResponse: true,
+    }, undefined]);
+    requestStub.getCalls()[1].args.should.be.eql([{
+      url: 'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param&page=2',
+      timeout: 120000,
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ##BEARER_TOKEN##',
+        'User-Agent': 'ClassyPay Node.JS',
+      },
+      resolveWithFullResponse: true,
+    }, undefined]);
+    requestStub.getCalls()[2].args.should.be.eql([{
+      url: 'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param&page=3',
+      timeout: 120000,
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ##BEARER_TOKEN##',
+        'User-Agent': 'ClassyPay Node.JS',
+      },
+      resolveWithFullResponse: true,
+    }, undefined]);
+  });
+
 
   it('POST request', async () => {
     oauth2Stub.resolves('##BEARER_TOKEN##');
