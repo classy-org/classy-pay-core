@@ -123,20 +123,20 @@ export class APIClient {
     const bearer = await this.getBearer(authParams);
     if (getAllPages) {
       let nextResource: string|undefined = normalizeUrl(`${this.apiUrl}${resource}`);
-      let fullBody: Array<any>|undefined;
+      let fullData: Array<any>|undefined;
       while (nextResource) {
         try {
           const results: {
             body: any,
             nextPageUrl: string|string[]|undefined,
           } = await this.makeRequest(bearer, method, nextResource, payload, false);
-          const body = results.body;
+          const data = results.body.data;
           const nextPageUrl = results.nextPageUrl;
-          if (body) {
-            if (!fullBody) {
-              fullBody = <Array<any>> body;
+          if (data) {
+            if (!fullData) {
+              fullData = <Array<any>> data;
             } else {
-              fullBody = fullBody.concat(body);
+              fullData = fullData.concat(data);
             }
           }
           if (nextPageUrl) {
@@ -146,7 +146,7 @@ export class APIClient {
           }
         } catch (e) {
           if (e instanceof RequestResponseError) {
-            if (e.response.statusCode === 404 && fullBody) {
+            if (e.response.statusCode === 404 && fullData) {
               nextResource = undefined;
             } else {
               throw e;
@@ -154,7 +154,7 @@ export class APIClient {
           }
         }
       }
-      return fullBody;
+      return fullData;
     } else {
       return (await this.makeRequest(bearer, method, resource, payload)).body;
     }

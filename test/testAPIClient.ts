@@ -15,13 +15,13 @@ const SUCCESSFUL_EMPTY_JSON_RESPONSE = {
   body: '{}',
 };
 
-const SUCCESSFUL_JSON_RESPONSE = (body: any, nextPage?: string) => ({
+const SUCCESSFUL_JSON_RESPONSE = (data: any, nextPage?: string) => ({
   statusCode: 200,
   headers: {
     'content-type': ['application/json'],
     'next_page_url': nextPage,
   },
-  body: JSON.stringify(body),
+  body: JSON.stringify({data: [data]}),
 });
 
 const BAD_RESPONSE = {
@@ -130,14 +130,14 @@ describe('API Client', () => {
   it('GET request with pagination', async () => {
     oauth2Stub.resolves('##BEARER_TOKEN##');
     requestStub.onCall(0).resolves(SUCCESSFUL_JSON_RESPONSE(
-      [{a: 'b'}],
+      {a: 'b'},
       'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param&page=2'),
     );
     requestStub.onCall(1).resolves(SUCCESSFUL_JSON_RESPONSE(
-      [{c: 'd'}],
+      {c: 'd'},
       'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param&page=3'),
     );
-    requestStub.onCall(2).resolves(SUCCESSFUL_JSON_RESPONSE([{e: 'f'}]));
+    requestStub.onCall(2).resolves(SUCCESSFUL_JSON_RESPONSE({e: 'f'}));
 
     const result = await apiClient.getAll('/some/path/to/something?q=some_query_param');
 
