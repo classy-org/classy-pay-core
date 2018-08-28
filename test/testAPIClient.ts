@@ -184,7 +184,6 @@ describe('API Client', () => {
     }, undefined]);
   });
 
-
   it('POST request', async () => {
     oauth2Stub.resolves('##BEARER_TOKEN##');
     requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
