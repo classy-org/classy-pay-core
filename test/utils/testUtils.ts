@@ -2,7 +2,7 @@ import sinon = require('sinon');
 import should = require('should');
 require('should-sinon');
 
-import { normalizeUrl, stringToBoolean } from '../../src/utils/utils';
+import { normalizeUrl, stringToBoolean, redact } from '../../src/utils/utils';
 
 describe('Normalizer', () => {
 
@@ -42,4 +42,119 @@ describe('stringToBoolean', () => {
   runTest('0', false);
   runTest('1', true);
   runTest('10000', true);
+});
+
+describe('Redact', () => {
+  const runTest = (description: string, input: any, expectedOutput: any) => {
+    it(`Redact: ${description}`, async () => {
+      const output = redact(input);
+      output.should.be.eql(expectedOutput);
+    });
+  };
+
+  runTest(`Request Options`, {
+    url: 'https://api.classy.org/2.0/recurring-donation-plans/213492/transactions',
+    timeout: 10000,
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer abcdefghijklmnop',
+      'User-Agent': 'ClassyPay Node.JS',
+      'Content-Type': 'application/json',
+    },
+    resolveWithFullResponse: true,
+    body: 'body',
+    simple: true,
+    transform2xxOnly: false,
+  }, {
+    url: 'https://api.classy.org/2.0/recurring-donation-plans/213492/transactions',
+    timeout: 10000,
+    method: 'POST',
+    headers: {
+      'Authorization': '*** REDACTED ***',
+      'User-Agent': 'ClassyPay Node.JS',
+      'Content-Type': 'application/json',
+    },
+    resolveWithFullResponse: true,
+    body: 'body',
+    simple: true,
+    transform2xxOnly: false,
+  });
+
+  runTest(`Response`, {
+    statusCode: 400,
+    body: '{\'error\':{\'member_id\':[\'Member can not be in a deleted or locked state.\']}}',
+    headers: {
+      'date': 'Sun, 26 Aug 2018 09:29:13 GMT',
+      'content-type': 'application/json',
+      'content-length': '75',
+      'connection': 'close',
+      'cache-control': 'no-cache',
+      'server': 'nginx',
+      'x-kong-limit': 'time-consumed=100',
+      'x-kong-upstream-latency': '103',
+      'x-kong-proxy-latency': '1',
+      'via': 'kong/0.9.3',
+    },
+    request: {
+      uri: {
+        protocol: 'https:',
+        slashes: true,
+        auth: null,
+        host: 'api.classy.org',
+        port: 443,
+        hostname: 'api.classy.org',
+        hash: null,
+        search: null,
+        query: null,
+        pathname: '/2.0/recurring-donation-plans/213492/transactions',
+        path: '/2.0/recurring-donation-plans/213492/transactions',
+        href: 'https://api.classy.org/2.0/recurring-donation-plans/213492/transactions',
+      },
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer abcdefghijklmnop',
+        'User-Agent': 'ClassyPay Node.JS',
+        'Content-Type': 'application/json',
+        'content-length': 5857,
+      },
+    },
+  }, {
+    statusCode: 400,
+    body: '{\'error\':{\'member_id\':[\'Member can not be in a deleted or locked state.\']}}',
+    headers: {
+      'date': 'Sun, 26 Aug 2018 09:29:13 GMT',
+      'content-type': 'application/json',
+      'content-length': '75',
+      'connection': 'close',
+      'cache-control': 'no-cache',
+      'server': 'nginx',
+      'x-kong-limit': 'time-consumed=100',
+      'x-kong-upstream-latency': '103',
+      'x-kong-proxy-latency': '1',
+      'via': 'kong/0.9.3',
+    },
+    request: {
+      uri: {
+        protocol: 'https:',
+        slashes: true,
+        auth: null,
+        host: 'api.classy.org',
+        port: 443,
+        hostname: 'api.classy.org',
+        hash: null,
+        search: null,
+        query: null,
+        pathname: '/2.0/recurring-donation-plans/213492/transactions',
+        path: '/2.0/recurring-donation-plans/213492/transactions',
+        href: 'https://api.classy.org/2.0/recurring-donation-plans/213492/transactions',
+      },
+      method: 'POST',
+      headers: {
+        'Authorization': '*** REDACTED ***',
+        'User-Agent': 'ClassyPay Node.JS',
+        'Content-Type': 'application/json',
+        'content-length': 5857,
+      },
+    },
+  });
 });
