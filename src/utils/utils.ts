@@ -61,19 +61,39 @@ type RequestOptionsWithUri = request.UriOptions & req.RequestPromiseOptions;
 type RequestOptionsWithUrl = request.UrlOptions & req.RequestPromiseOptions;
 export type RequestOptions = RequestOptionsWithUri | RequestOptionsWithUrl;
 
-const redactRequest = (obj: RequestOptions) => {
-  const retObj = _.cloneDeep<RequestOptions>(obj);
+export const omitDeepWithKeys = (obj: any, excludeKeys: Array<string>, replacementValue?: string) => {
+  const stackSet = new Set();
+  const newObj = _.cloneDeep<any>(obj);
 
-  if (retObj.headers && retObj.headers.Authorization) {
-    retObj.headers.Authorization = '*** REDACTED ***';
-  }
+  const omitFn = (value: any) => {
+    if (!_.isObject(value) || _.isFunction(value) || stackSet.has(value)) {
+      return;
+    }
 
-  return retObj;
+    excludeKeys.forEach(key => {
+      if (replacementValue && value[key] !== undefined) {
+        value[key] = replacementValue;
+      } else {
+        delete value[key];
+      }
+    });
+
+    stackSet.add(value);
+    for (const key of Object.keys(value)) {
+      omitFn(value[key]);
+    }
+  };
+  omitFn(newObj);
+  return newObj;
 };
 
-export const requestWithLogs = async (options: RequestOptions, log?: Logger): Promise<request.Response> => {
-  const redactedOptions = redactRequest(options);
+export const redact = (obj: any) => omitDeepWithKeys(
+  obj,
+  ['Authorization'],
+  '*** REDACTED ***',
+);
 
+export const requestWithLogs = async (options: RequestOptions, log?: Logger): Promise<request.Response> => {
   let logString;
   if (log) {
     let location;
@@ -82,9 +102,9 @@ export const requestWithLogs = async (options: RequestOptions, log?: Logger): Pr
     } else if ('uri' in options) {
       location = options.uri;
     }
-    logString = `${redactedOptions.method} ${location}`;
+    logString = `${options.method} ${location}`;
 
-    log.info(redactedOptions, `Request ${logString}`);
+    log.info(redact(options), `Request ${logString}`);
   }
   let response: undefined|request.Response;
   let error: undefined|Error;
@@ -102,10 +122,10 @@ export const requestWithLogs = async (options: RequestOptions, log?: Logger): Pr
         statusCode = (<StatusCodeError> error).statusCode ? (<StatusCodeError> error).statusCode : undefined;
       }
       if (statusCode === 200 && error === undefined) {
-        log.info({request: redactedOptions, response}, `Response (Good) ${logString}`);
+        log.info(redact({request, response}), `Response (Good) ${logString}`);
       } else {
         log.error(
-          {request: redactedOptions, response, error},
+          redact({request, response, error}),
           `Response (Bad${statusCode ? ' - ' + statusCode : ''}) ${logString}`,
         );
       }
