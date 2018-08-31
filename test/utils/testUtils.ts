@@ -168,7 +168,7 @@ describe(`Sequelize CloneDeep`, () => {
     });
   };
 
-  // runTest(`Nominal case`, {a: {b: 'c'}}, {a: {b: 'c'}});
+  runTest(`Nominal case`, {a: {b: 'c'}}, {a: {b: 'c'}});
 
   const createProxy = () => {
     let y: any;
@@ -200,5 +200,5 @@ describe(`Sequelize CloneDeep`, () => {
   };
   runTest(`Proxy with toJSON`, createProxy(), {});
 
-  // runTest(`Array of proxies with toJSON`, [createProxy(), createProxy()], [{}, {}]);
+  runTest(`Array of proxies with toJSON`, [createProxy(), createProxy()], [{}, {}]);
 });
