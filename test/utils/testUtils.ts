@@ -1,8 +1,9 @@
 import sinon = require('sinon');
 import should = require('should');
 require('should-sinon');
+import * as _ from 'lodash';
 
-import { normalizeUrl, stringToBoolean, redact, sequelizeCloneDeep } from '../../src/utils/utils';
+import { normalizeUrl, stringToBoolean, redact, sequelizeCloneDeep, recurse } from '../../src/utils/utils';
 
 describe('Normalizer', () => {
 
@@ -164,7 +165,27 @@ describe(`Sequelize CloneDeep`, () => {
     it(`Redact: ${description}`, async () => {
       const output = await sequelizeCloneDeep(input);
       should.exist(output);
-      if (output) output.should.be.eql(expectedOutput);
+      if (output) {
+        output.should.be.eql(expectedOutput);
+
+        const outputObjects: Array<any> = [];
+        const inputObjects: Array<any> = [];
+        await recurse(output, async (type, value) => {
+          outputObjects.push(value);
+          return 'RECURSE_DEEPER';
+        });
+        await recurse(input, async (type, value) => {
+          inputObjects.push(value);
+          return value.toJSON ? 'STOP' : 'RECURSE_DEEPER';
+        });
+        for (const x of outputObjects) {
+          for (const y of inputObjects) {
+            if ((Array.isArray(x) || _.isObject(x)) && (Array.isArray(y) || _.isObject(y))) {
+              x.should.not.be.equal(y);
+            }
+          }
+        }
+      }
     });
   };
 
