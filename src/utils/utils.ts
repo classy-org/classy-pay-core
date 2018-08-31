@@ -140,42 +140,42 @@ type RecurseVisitorFunction = (
   value: any,
   keyOrIndex?: string|number,
   parent?: any,
-) => Promise<RecurseVisitorAction>;
+) => RecurseVisitorAction;
 interface RecurseOptions {
   visitNonEnumerableNodes?: boolean;
 }
 
-export const recurse = async (input: any, visitor: RecurseVisitorFunction, options?: RecurseOptions) => {
-  const action = await visitor('ROOT', input);
+export const recurse = (input: any, visitor: RecurseVisitorFunction, options?: RecurseOptions) => {
+  const action = visitor('ROOT', input);
   if (action === 'RECURSE_DEEPER') {
-    await _recurseImpl(undefined, input, visitor, options);
+    _recurseImpl(undefined, input, visitor, options);
   }
 };
 
-const _recurseImpl = async (parent: any, input: any, visitor: RecurseVisitorFunction, options?: RecurseOptions) => {
+const _recurseImpl = (parent: any, input: any, visitor: RecurseVisitorFunction, options?: RecurseOptions) => {
   if (Array.isArray(input)) {
     for (let i = 0; i < input.length; i++) {
-      const action = await visitor('ARRAY', input[i], i, input);
+      const action = visitor('ARRAY', input[i], i, input);
       if (action === 'RECURSE_DEEPER') {
-        await _recurseImpl(input, input[i], visitor, options);
+        _recurseImpl(input, input[i], visitor, options);
       }
     }
   } else if (_.isObject(input) && !_.isFunction(input)) {
     const visitNonEnumerableNodes = options ? options.visitNonEnumerableNodes : false;
     for (const key of visitNonEnumerableNodes ? Object.getOwnPropertyNames(input) : Object.keys(input)) {
-      const action = await visitor('OBJECT', input[key], key, input);
+      const action = visitor('OBJECT', input[key], key, input);
       if (action === 'RECURSE_DEEPER') {
-        await _recurseImpl(input, input[key], visitor, options);
+        _recurseImpl(input, input[key], visitor, options);
       }
     }
   }
 };
 
-export const sequelizeCloneDeep = async (input: any): Promise<any> => {
+export const sequelizeCloneDeep = (input: any): any => {
   const clonedNodes = new Map<any, any>();
   let clonedRootNode: any;
 
-  await recurse(input, async (type, value, keyOrIndex, parent): Promise<RecurseVisitorAction> => {
+  recurse(input, (type, value, keyOrIndex, parent): RecurseVisitorAction => {
     let clonedValue: any;
     let retval: RecurseVisitorAction = 'RECURSE_DEEPER';
     if (keyOrIndex === 'prototype') {

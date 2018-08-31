@@ -163,18 +163,18 @@ describe('Redact', () => {
 describe(`Sequelize CloneDeep`, () => {
   const runTest = (description: string, input: any, expectedOutput: any) => {
     it(`Redact: ${description}`, async () => {
-      const output = await sequelizeCloneDeep(input);
+      const output = sequelizeCloneDeep(input);
       should.exist(output);
       if (output) {
         output.should.be.eql(expectedOutput);
 
         const outputObjects: Array<any> = [];
         const inputObjects: Array<any> = [];
-        await recurse(output, async (type, value) => {
+        await recurse(output, (type, value) => {
           outputObjects.push(value);
           return 'RECURSE_DEEPER';
         });
-        await recurse(input, async (type, value) => {
+        await recurse(input, (type, value) => {
           inputObjects.push(value);
           return value.toJSON ? 'STOP' : 'RECURSE_DEEPER';
         });
