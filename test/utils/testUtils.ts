@@ -2,7 +2,7 @@ import sinon = require('sinon');
 import should = require('should');
 require('should-sinon');
 
-import { normalizeUrl, stringToBoolean, redact } from '../../src/utils/utils';
+import { normalizeUrl, stringToBoolean, redact, sequelizeCloneDeep } from '../../src/utils/utils';
 
 describe('Normalizer', () => {
 
@@ -157,4 +157,46 @@ describe('Redact', () => {
       },
     },
   });
+});
+
+describe(`Sequelize CloneDeep`, () => {
+  const runTest = (description: string, input: any, expectedOutput: any) => {
+    it(`Redact: ${description}`, async () => {
+      const output = sequelizeCloneDeep(input);
+      output.should.be.eql(expectedOutput);
+    });
+  };
+
+  runTest(`Nominal case`, {a: {b: 'c'}}, {a: {b: 'c'}});
+
+  const createProxy = () => {
+    let y: any;
+    const toJSON = () => ({});
+    return new Proxy({}, {
+      get: (obj, prop) => {
+        if (prop === 'y') {
+          if (!y) y = createProxy();
+          return y;
+        }
+        if (prop === 'toJSON') {
+          return toJSON;
+        }
+        return undefined;
+      },
+      ownKeys: () => ['y'],
+      getOwnPropertyDescriptor: (target, prop) => {
+        if (prop === 'y') {
+          if (!y) y = createProxy();
+          return { configurable: true, enumerable: true, value: y };
+        }
+        if (prop === 'toJSON') {
+          if (!y) y = createProxy();
+          return { configurable: true, enumerable: true, value: toJSON };
+        }
+        return undefined;
+      },
+    });
+  };
+
+  runTest(`Proxy with toJSON`, createProxy(), {});
 });

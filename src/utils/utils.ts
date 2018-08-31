@@ -132,3 +132,5 @@ export const requestWithLogs = async (options: RequestOptions, log?: Logger): Pr
     }
   }
 };
+
+export const sequelizeCloneDeep = (value: any) => _.cloneDeep(value.toJSON ? value.toJSON() : value);
