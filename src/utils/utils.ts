@@ -104,7 +104,7 @@ export const requestWithLogs = async (options: RequestOptions, log?: Logger): Pr
     }
     logString = `${options.method} ${location}`;
 
-    log.info(redact(options), `Request ${logString}`);
+    log.info(redact({request: options}), `Request ${logString}`);
   }
   let response: undefined|request.Response;
   let error: undefined|Error;
@@ -122,10 +122,10 @@ export const requestWithLogs = async (options: RequestOptions, log?: Logger): Pr
         statusCode = (<StatusCodeError> error).statusCode ? (<StatusCodeError> error).statusCode : undefined;
       }
       if (statusCode === 200 && error === undefined) {
-        log.info(redact({request, response}), `Response (Good) ${logString}`);
+        log.info(redact({request: options, response}), `Response (Good) ${logString}`);
       } else {
         log.error(
-          redact({request, response, error}),
+          redact({request: options, response, error}),
           `Response (Bad${statusCode ? ' - ' + statusCode : ''}) ${logString}`,
         );
       }
