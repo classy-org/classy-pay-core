@@ -1,8 +1,20 @@
+// tslint:disable:max-classes-per-file
 import { OAuth2 } from 'oauth';
 import * as Logger from 'bunyan';
 import { normalizeUrl, JSONParseBig, requestWithLogs } from './utils/utils';
+import request = require('request');
+import {URL} from 'url';
 
 export type MethodType = 'GET'|'POST'|'PUT'|'DELETE';
+
+export class RequestResponseError extends Error {
+  public response: request.Response;
+
+  constructor(response: request.Response, message: string) {
+    super(message);
+    this.response = response;
+  }
+}
 
 export class APIClient {
   private readonly clientId: string;
@@ -58,9 +70,9 @@ export class APIClient {
     });
   }
 
-  private async makeRequest(bearer: string, method: MethodType, resource: string, payload?: object) {
+  private async makeRequest(bearer: string, method: MethodType, resource: string, payload?: object, useAPIUrl = true) {
     const options: any = {
-      url: normalizeUrl(`${this.apiUrl}${resource}`),
+      url: useAPIUrl ? normalizeUrl(`${this.apiUrl}${resource}`) : resource,
       timeout: this.timeout,
       method,
       headers: {
@@ -80,9 +92,17 @@ export class APIClient {
 
     const response = await requestWithLogs(options, this.log);
     if (response.statusCode !== 200) {
-      throw new Error(`API client received status code ${response.statusCode}: ${response.body}`);
+      throw new RequestResponseError(
+        response,
+        `API client received status code ${response.statusCode}: ${response.body}`,
+      );
     } else {
-      return response.body ? JSONParseBig(response.body) : undefined;
+      // tslint:disable-next-line:no-string-literal
+      return {
+        body: response.body ? JSONParseBig(response.body) : undefined,
+        // tslint:disable-next-line:no-string-literal
+        nextPageUrl: response.headers['next_page_url'],
+      };
     }
   }
 
@@ -93,11 +113,51 @@ export class APIClient {
    * @param {MethodType} resource the resource you wish to operate on
    * @param {object} payload the payload, only applicable to POST and PUT requests
    * @param authParams
+   * @param getAllPages concatenate all pages for GET requests
    * @returns {Promise<object | undefined>}
    */
-  public async request(method: MethodType, resource: string, payload?: object, authParams?: any) {
+  public async request(method: MethodType, resource: string, payload?: object, authParams?: any, getAllPages = false) {
+    if (getAllPages && method !== 'GET') {
+      throw new Error(`Can't pass getAllPages=true when using method type ${method}`);
+    }
     const bearer = await this.getBearer(authParams);
-    return await this.makeRequest(bearer, method, resource, payload);
+    if (getAllPages) {
+      let nextResource: string|undefined = normalizeUrl(`${this.apiUrl}${resource}`);
+      let fullData: Array<any>|undefined;
+      while (nextResource) {
+        try {
+          const results: {
+            body: any,
+            nextPageUrl: string|string[]|undefined,
+          } = await this.makeRequest(bearer, method, nextResource, payload, false);
+          const data = results.body.data;
+          const nextPageUrl = results.nextPageUrl;
+          if (data) {
+            if (!fullData) {
+              fullData = <Array<any>> data;
+            } else {
+              fullData = fullData.concat(data);
+            }
+          }
+          if (nextPageUrl) {
+            nextResource = typeof nextPageUrl === 'string' ? nextPageUrl : nextPageUrl[0];
+          } else {
+            nextResource = undefined;
+          }
+        } catch (e) {
+          if (e instanceof RequestResponseError) {
+            if (e.response.statusCode === 404 && fullData) {
+              nextResource = undefined;
+            } else {
+              throw e;
+            }
+          }
+        }
+      }
+      return fullData;
+    } else {
+      return (await this.makeRequest(bearer, method, resource, payload)).body;
+    }
   }
 
   /**
@@ -109,6 +169,17 @@ export class APIClient {
    */
   public async get(resource: string, authparams?: any) {
     return await this.request('GET', resource, undefined, authparams);
+  }
+
+  /**
+   * Convenience wrapper around request, to perform a GET returning all pages.
+   *
+   * @param {string} resource
+   * @param authparams
+   * @returns {Promise<object | undefined>}
+   */
+  public async getAll(resource: string, authparams?: any) {
+    return await this.request('GET', resource, undefined, authparams, true);
   }
 
   /**
