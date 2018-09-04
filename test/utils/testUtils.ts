@@ -164,7 +164,11 @@ describe(`Sequelize CloneDeep`, () => {
   const runTest = (description: string, input: any, expectedOutput: any) => {
     it(`Redact: ${description}`, async () => {
       const output = sequelizeCloneDeep(input);
-      should.exist(output);
+      if (expectedOutput) {
+        should.exist(output);
+      } else {
+        should.not.exist(output);
+      }
       if (output) {
         output.should.be.eql(expectedOutput);
 
@@ -222,4 +226,6 @@ describe(`Sequelize CloneDeep`, () => {
   runTest(`Proxy with toJSON`, createProxy(), {});
 
   runTest(`Array of proxies with toJSON`, [createProxy(), createProxy()], [{}, {}]);
+
+  runTest(`Undefined`, undefined, undefined);
 });

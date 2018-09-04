@@ -146,9 +146,11 @@ interface RecurseOptions {
 }
 
 export const recurse = (input: any, visitor: RecurseVisitorFunction, options?: RecurseOptions) => {
-  const action = visitor('ROOT', input);
-  if (action === 'RECURSE_DEEPER') {
-    _recurseImpl(undefined, input, visitor, options);
+  if (input) {
+    const action = visitor('ROOT', input);
+    if (action === 'RECURSE_DEEPER') {
+      _recurseImpl(undefined, input, visitor, options);
+    }
   }
 };
 
