@@ -145,12 +145,10 @@ export class APIClient {
             nextResource = undefined;
           }
         } catch (e) {
-          if (e instanceof RequestResponseError) {
-            if (e.response.statusCode === 404 && fullData) {
+          if (e instanceof RequestResponseError && e.response.statusCode === 404 && fullData) {
               nextResource = undefined;
-            } else {
-              throw e;
-            }
+          } else {
+            throw e;
           }
         }
       }
