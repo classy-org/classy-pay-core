@@ -180,7 +180,7 @@ describe(`Sequelize CloneDeep`, () => {
         });
         await recurse(input, (type, value) => {
           inputObjects.push(value);
-          return value.toJSON ? 'STOP' : 'RECURSE_DEEPER';
+          return value && value.toJSON ? 'STOP' : 'RECURSE_DEEPER';
         });
         for (const x of outputObjects) {
           for (const y of inputObjects) {
@@ -228,4 +228,6 @@ describe(`Sequelize CloneDeep`, () => {
   runTest(`Array of proxies with toJSON`, [createProxy(), createProxy()], [{}, {}]);
 
   runTest(`Undefined`, undefined, undefined);
+
+  runTest(`Undefined values`, { something: undefined }, { something: undefined });
 });

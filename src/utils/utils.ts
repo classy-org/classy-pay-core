@@ -180,7 +180,9 @@ export const sequelizeCloneDeep = (input: any): any => {
   recurse(input, (type, value, keyOrIndex, parent): RecurseVisitorAction => {
     let clonedValue: any;
     let retval: RecurseVisitorAction = 'RECURSE_DEEPER';
-    if (keyOrIndex === 'prototype') {
+    if (value === undefined || value === null) {
+      clonedValue = value;
+    } else if (keyOrIndex === 'prototype') {
       return 'STOP'; // prevent prototype pollution
     } else if (clonedNodes.get(value)) {
       clonedValue = clonedNodes.get(value);
