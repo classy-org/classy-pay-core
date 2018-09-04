@@ -132,3 +132,80 @@ export const requestWithLogs = async (options: RequestOptions, log?: Logger): Pr
     }
   }
 };
+
+type RecurseVisitorFunctionInputType = 'ROOT'|'ARRAY'|'OBJECT';
+type RecurseVisitorAction = 'RECURSE_DEEPER'|'STOP';
+type RecurseVisitorFunction = (
+  type: RecurseVisitorFunctionInputType,
+  value: any,
+  keyOrIndex?: string|number,
+  parent?: any,
+) => RecurseVisitorAction;
+interface RecurseOptions {
+  visitNonEnumerableNodes?: boolean;
+}
+
+export const recurse = (input: any, visitor: RecurseVisitorFunction, options?: RecurseOptions) => {
+  const action = visitor('ROOT', input);
+  if (action === 'RECURSE_DEEPER') {
+    _recurseImpl(undefined, input, visitor, options);
+  }
+};
+
+const _recurseImpl = (parent: any, input: any, visitor: RecurseVisitorFunction, options?: RecurseOptions) => {
+  if (Array.isArray(input)) {
+    for (let i = 0; i < input.length; i++) {
+      const action = visitor('ARRAY', input[i], i, input);
+      if (action === 'RECURSE_DEEPER') {
+        _recurseImpl(input, input[i], visitor, options);
+      }
+    }
+  } else if (_.isObject(input) && !_.isFunction(input)) {
+    const visitNonEnumerableNodes = options ? options.visitNonEnumerableNodes : false;
+    for (const key of visitNonEnumerableNodes ? Object.getOwnPropertyNames(input) : Object.keys(input)) {
+      const action = visitor('OBJECT', input[key], key, input);
+      if (action === 'RECURSE_DEEPER') {
+        _recurseImpl(input, input[key], visitor, options);
+      }
+    }
+  }
+};
+
+export const sequelizeCloneDeep = (input: any): any => {
+  const clonedNodes = new Map<any, any>();
+  let clonedRootNode: any;
+
+  recurse(input, (type, value, keyOrIndex, parent): RecurseVisitorAction => {
+    let clonedValue: any;
+    let retval: RecurseVisitorAction = 'RECURSE_DEEPER';
+    if (keyOrIndex === 'prototype') {
+      return 'STOP'; // prevent prototype pollution
+    } else if (clonedNodes.get(value)) {
+      clonedValue = clonedNodes.get(value);
+      retval = 'STOP';
+    } else if (value.toJSON) {
+      clonedValue = value.toJSON();
+      clonedNodes.set(value, clonedValue);
+      retval = 'STOP';
+    } else {
+      clonedValue = _.clone(value);
+      clonedNodes.set(value, clonedValue);
+    }
+
+    let clonedParent;
+    if (type === 'ROOT') {
+      clonedNodes.set(value, clonedValue);
+      clonedRootNode = clonedValue;
+    } else {
+      clonedParent = clonedNodes.get(parent);
+      if (!clonedParent) {
+        throw new Error(`Couldn't find cloned parent while recursing`);
+      }
+      clonedParent[keyOrIndex ? keyOrIndex : 0] = clonedValue;
+    }
+
+    return retval;
+  });
+
+  return clonedRootNode;
+};

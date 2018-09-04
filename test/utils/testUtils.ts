@@ -1,8 +1,9 @@
 import sinon = require('sinon');
 import should = require('should');
 require('should-sinon');
+import * as _ from 'lodash';
 
-import { normalizeUrl, stringToBoolean, redact } from '../../src/utils/utils';
+import { normalizeUrl, stringToBoolean, redact, sequelizeCloneDeep, recurse } from '../../src/utils/utils';
 
 describe('Normalizer', () => {
 
@@ -157,4 +158,68 @@ describe('Redact', () => {
       },
     },
   });
+});
+
+describe(`Sequelize CloneDeep`, () => {
+  const runTest = (description: string, input: any, expectedOutput: any) => {
+    it(`Redact: ${description}`, async () => {
+      const output = sequelizeCloneDeep(input);
+      should.exist(output);
+      if (output) {
+        output.should.be.eql(expectedOutput);
+
+        const outputObjects: Array<any> = [];
+        const inputObjects: Array<any> = [];
+        await recurse(output, (type, value) => {
+          outputObjects.push(value);
+          return 'RECURSE_DEEPER';
+        });
+        await recurse(input, (type, value) => {
+          inputObjects.push(value);
+          return value.toJSON ? 'STOP' : 'RECURSE_DEEPER';
+        });
+        for (const x of outputObjects) {
+          for (const y of inputObjects) {
+            if ((Array.isArray(x) || _.isObject(x)) && (Array.isArray(y) || _.isObject(y))) {
+              x.should.not.be.equal(y);
+            }
+          }
+        }
+      }
+    });
+  };
+
+  runTest(`Nominal case`, {a: {b: 'c'}}, {a: {b: 'c'}});
+
+  const createProxy = () => {
+    let y: any;
+    const toJSON = () => ({});
+    return new Proxy({}, {
+      get: (obj, prop) => {
+        if (prop === 'y') {
+          if (!y) y = createProxy();
+          return y;
+        }
+        if (prop === 'toJSON') {
+          return toJSON;
+        }
+        return undefined;
+      },
+      ownKeys: () => ['y'],
+      getOwnPropertyDescriptor: (target, prop) => {
+        if (prop === 'y') {
+          if (!y) y = createProxy();
+          return { configurable: true, enumerable: true, value: y };
+        }
+        if (prop === 'toJSON') {
+          if (!y) y = createProxy();
+          return { configurable: true, enumerable: true, value: toJSON };
+        }
+        return undefined;
+      },
+    });
+  };
+  runTest(`Proxy with toJSON`, createProxy(), {});
+
+  runTest(`Array of proxies with toJSON`, [createProxy(), createProxy()], [{}, {}]);
 });
