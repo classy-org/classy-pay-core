@@ -249,7 +249,7 @@ describe('runFunctionAfterDelay', () => {
 
   it('should reject the value', async () => {
     funcStub = sinon.stub().throws(new Error('test'));
-    await runFunctionAfterDelay(1000, funcStub).should.be.rejected();
+    await (<any> runFunctionAfterDelay(1000, funcStub)).should.be.rejected();
     funcStub.should.be.calledOnce();
   });
 });

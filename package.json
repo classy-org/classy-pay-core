@@ -5,8 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "yarn run lint && find test/ -iname \"test*.ts\" | xargs ./node_modules/istanbul/lib/cli.js cover _mocha -- -r ts-node/register",
-    "build": "yarn run lint && tsc -p ./",
-    "tslint": "find src/ test/ -iname \"*.ts\" | xargs tslint -c ./tslint.json",
+    "build": "yarn run lint && node_modules/typescript/bin/tsc -p ./",
+    "tslint": "find src/ test/ -iname \"*.ts\" | xargs node_modules/tslint/bin/tslint -c ./tslint.json",
     "lint": "yarn run tslint",
     "prepublish": "yarn run clean && yarn run test && yarn run build",
     "clean": "rm -rfv lib"
