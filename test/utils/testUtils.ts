@@ -2,8 +2,8 @@ import sinon = require('sinon');
 import should = require('should');
 require('should-sinon');
 import * as _ from 'lodash';
-
-import { normalizeUrl, stringToBoolean, redact, sequelizeCloneDeep, recurse } from '../../src/utils/utils';
+// tslint:disable-next-line:max-line-length
+import { normalizeUrl, stringToBoolean, redact, sequelizeCloneDeep, recurse, runFunctionAfterDelay } from '../../src/utils/utils';
 
 describe('Normalizer', () => {
 
@@ -230,4 +230,26 @@ describe(`Sequelize CloneDeep`, () => {
   runTest(`Undefined`, undefined, undefined);
 
   runTest(`Undefined values`, { something: undefined }, { something: undefined });
+});
+
+describe('runFunctionAfterDelay', () => {
+  const result = {id: 1};
+  let funcStub: any;
+
+  afterEach( () => {
+    funcStub.reset();
+  });
+
+  it('should resolve the value', async () => {
+    funcStub = sinon.stub().resolves(result);
+    const actual = await runFunctionAfterDelay(1000, funcStub);
+    funcStub.should.be.calledOnce();
+    actual.should.eql(result);
+  });
+
+  it('should reject the value', async () => {
+    funcStub = sinon.stub().throws(new Error('test'));
+    await runFunctionAfterDelay(1000, funcStub).should.be.rejected();
+    funcStub.should.be.calledOnce();
+  });
 });

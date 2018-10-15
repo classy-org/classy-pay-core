@@ -213,3 +213,16 @@ export const sequelizeCloneDeep = (input: any): any => {
 
   return clonedRootNode;
 };
+
+export const runFunctionAfterDelay = (ms: number, func: any): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(async () => {
+      try {
+        const result = await func();
+        resolve(result);
+      } catch (e) {
+        reject(e);
+      }
+    }, ms);
+  });
+};
