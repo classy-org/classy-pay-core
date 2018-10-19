@@ -9,7 +9,7 @@ import {Readable, Writable, Duplex} from 'stream';
 import fs = require('fs');
 const yamljs = require('yamljs');
 
-export type ValidateArgsFunction = (args: Array<string>) => string|undefined;
+export type ValidateArgsFunction = (args: Array<string>, dryRun: boolean) => string|undefined;
 export type ScriptFunction = (config: Config, args: Array<string>) => Promise<void>;
 
 export const runScript = (
@@ -44,11 +44,11 @@ export const runScript = (
   const argDryRun = <string> _.get(opt.options, 'dryRun', 'true');
   let dryRun = true;
   if (_.toLower(argDryRun) === 'false') {
-    dryRun = true;
+    dryRun = false;
   }
 
   // Let script validate args
-  const validateArgsResult = argValidator(opt.argv);
+  const validateArgsResult = argValidator(opt.argv, dryRun);
   if (validateArgsResult) {
     // tslint:disable-next-line no-console
     console.error(`Invalid arguments to script: ${validateArgsResult}\n`
