@@ -154,26 +154,41 @@ export const runScript = (
   });
 };
 
-export type PipeSetupFunction = (
+export interface Pipeline {
+  source?: Readable;
+  transforms?: Array<Duplex>;
+  sink?: Writable;
+}
+
+export type PipeLifecycleFunction = (
   config: Config,
   args: Array<string>,
-  source: Readable|undefined,
-  transforms: Array<Duplex>,
-  sink: Writable|undefined) => Promise<void>;
+  context: object,
+  pipeline: Pipeline) => Promise<void>;
+
+export type PipelineFactory = (
+  config: Config,
+  args: Array<string>,
+  context: object) => Promise<Pipeline>;
 
 export const runPipes = (
-  setup: PipeSetupFunction,
-  source: Readable|undefined,
-  transforms: Array<Duplex> = [],
-  sink: Writable|undefined = undefined,
-  teardown: ScriptFunction = async () => {},
+  setup: PipeLifecycleFunction,
+  factory: PipelineFactory,
+  teardown: PipeLifecycleFunction = async () => {},
   argDescription: string = '',
   argValidator: ValidateArgsFunction = args => undefined,
 ): void => {
   runScript(async (config, args) => {
+    const context = {};
+    const pipeline = await factory(config, args, context);
+    let { transforms } = pipeline;
+    const { source, sink } = pipeline;
     await new Promise(async (resolve, reject) => {
       let called = false;
       try {
+        if (!transforms) {
+          transforms = [];
+        }
         for (let i = 0; i < transforms.length; i++) {
           if (i === 0) {
             if (source) {
@@ -205,7 +220,7 @@ export const runPipes = (
             resolve();
           }
         }
-        await setup(config, args, source, transforms, sink);
+        await setup(config, args, context, pipeline);
       } catch (e) {
         if (!called) {
           called = true;
@@ -213,6 +228,6 @@ export const runPipes = (
         }
       }
     });
-    await teardown(config, args);
+    await teardown(config, args, context, pipeline);
   },  argDescription, argValidator);
 };
