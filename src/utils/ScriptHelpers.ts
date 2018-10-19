@@ -50,8 +50,10 @@ export const runScript = (
   // Let script validate args
   const validateArgsResult = argValidator(opt.argv);
   if (validateArgsResult) {
-    throw new Error(`Invalid arguments to script: ${validateArgsResult}\n"
-      + "usage: ${process.argv[0]} -s|--stage stage [--d|--dryRun dryRun] ${argDescription}`);
+    // tslint:disable-next-line no-console
+    console.error(`Invalid arguments to script: ${validateArgsResult}\n`
+      + `usage: ${process.argv[0]} ${process.argv[1]} -s|--stage stage [--d|--dryRun dryRun] ${argDescription}`);
+    return;
   }
 
   // Generate config
@@ -162,7 +164,7 @@ export type PipeSetupFunction = (
 export const runPipes = (
   setup: PipeSetupFunction,
   source: Readable|undefined,
-  transforms: Array<Duplex>,
+  transforms: Array<Duplex> = [],
   sink: Writable|undefined = undefined,
   teardown: ScriptFunction = async () => {},
   argDescription: string = '',
@@ -181,17 +183,28 @@ export const runPipes = (
             transforms[i - 1].pipe(transforms[i]);
           }
         }
-        let finalStream: Writable = transforms[transforms.length - 1];
+        let finalStream: Writable|undefined = transforms.length > 0 ? transforms[transforms.length - 1] : undefined;
         if (sink) {
           finalStream = sink;
-          transforms[transforms.length - 1].pipe(sink);
+          if (transforms.length > 0) {
+            transforms[transforms.length - 1].pipe(sink);
+          } else if (source) {
+            source.pipe(sink);
+          }
         }
-        finalStream.on('finish', () => {
+        if (finalStream) {
+          finalStream.on('finish', () => {
+            if (!called) {
+              called = true;
+              resolve();
+            }
+          });
+        } else {
           if (!called) {
             called = true;
             resolve();
           }
-        });
+        }
         await setup(config, args, source, transforms, sink);
       } catch (e) {
         if (!called) {
