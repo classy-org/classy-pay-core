@@ -25,7 +25,12 @@ export const runScript = (
 
   const argStage: string = <string> _.get(opt.options, 'stage');
   if (!argStage) {
-    throw new Error(`Please provide a stage; valid values are int, staging, or prod`);
+    // tslint:disable-next-line no-console
+    console.error(
+      `Please specify a stage\n` +
+      `usage: ${process.argv[0]} ${process.argv[1]} -s|--stage stage [--d|--dryRun dryRun] ${argDescription}`,
+    );
+    return;
   }
   if (_.includes(['int', 'staging', 'prod'], argStage) === false) {
     throw new Error(`Invalid stage ${argStage}`);
