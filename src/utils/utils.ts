@@ -228,7 +228,7 @@ export const runFunctionAfterDelay = (ms: number, func: any): Promise<any> => {
 };
 
 export type CallbackFunction = (error: Error, value: any) => void;
-export const runAsyncCodeWithCallback = async (f: () => Promise<any>, callback: CallbackFunction): Promise<void> => {
+export const unpromisify = async (f: () => Promise<any>, callback: CallbackFunction): Promise<void> => {
   let result;
   let error;
   try {

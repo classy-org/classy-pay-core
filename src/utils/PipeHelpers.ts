@@ -2,15 +2,13 @@
 
 import ParallelTransform = require('parallel-transform');
 import stream = require('stream');
-import {runAsyncCodeWithCallback} from './utils';
+import { unpromisify } from './utils';
 
 export const parallelTransform = (concurrency: number, handler: (data: any) => Promise<any>): stream.Transform =>
   new ParallelTransform(concurrency, {
   objectMode: true,
 }, async (data, callback) => {
-  runAsyncCodeWithCallback(async () => {
-    return await handler(data);
-  }, callback);
+  unpromisify(async () => await handler(data), callback);
 });
 
 export const readableStream = (handler: () => Promise<any>): stream.Readable =>
@@ -35,7 +33,7 @@ export const writableStream = (handler: (data: any) => Promise<void>): stream.Wr
   new stream.Writable({
     objectMode: true,
     async write(chunk, encoding, callback) {
-      runAsyncCodeWithCallback(async () => {
+      unpromisify(async () => {
         await handler(chunk);
       }, callback);
     },
