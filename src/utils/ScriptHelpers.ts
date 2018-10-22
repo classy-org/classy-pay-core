@@ -23,7 +23,10 @@ export const runScript = (
     ['d', 'dryRun=DRYRUN'],
   ]).parseSystem();
 
-  const argStage: string = <string> _.get(opt.options, 'stage', 'int');
+  const argStage: string = <string> _.get(opt.options, 'stage');
+  if (!argStage) {
+    throw new Error(`Please provide a stage; valid values are int, staging, or prod`);
+  }
   if (_.includes(['int', 'staging', 'prod'], argStage) === false) {
     throw new Error(`Invalid stage ${argStage}`);
   }
