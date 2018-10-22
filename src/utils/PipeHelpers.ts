@@ -16,11 +16,9 @@ export const readableStream = (handler: () => Promise<any>): stream.Readable =>
     objectMode: true,
     async read() {
       let value;
-      let error;
       try {
         value = await handler();
-      } catch (e) {
-        error = e;
+      } catch (error) {
         console.error(`Error reading from stream: ${error}`);
       }
       if (value) {
