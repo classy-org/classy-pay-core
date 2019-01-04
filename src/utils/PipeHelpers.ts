@@ -23,6 +23,8 @@ export const readableStream = (handler: () => Promise<any>): stream.Readable =>
       }
       if (value) {
         this.push(value);
+      } else {
+        this.destroy();
       }
     },
   });
