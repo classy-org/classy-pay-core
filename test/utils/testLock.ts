@@ -1,8 +1,9 @@
 import should = require('should');
-require('should-sinon');
 import Promise = require('bluebird');
 import _ = require('lodash');
+
 import Lock from '../../src/utils/Lock';
+require('should-sinon');
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 

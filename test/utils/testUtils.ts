@@ -1,9 +1,10 @@
 import sinon = require('sinon');
 import should = require('should');
-require('should-sinon');
 import * as _ from 'lodash';
+
 // tslint:disable-next-line:max-line-length
 import { normalizeUrl, stringToBoolean, redact, sequelizeCloneDeep, recurse, runFunctionAfterDelay } from '../../src/utils/utils';
+require('should-sinon');
 
 describe('Normalizer', () => {
 

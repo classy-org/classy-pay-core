@@ -1,11 +1,11 @@
 import sinon = require('sinon');
 import should = require('should');
-require('should-sinon');
 import mock = require('mock-require');
+import { oauth2tokenCallback } from 'oauth';
 
 import { APIClient } from '../src/APIClient';
-import { oauth2tokenCallback } from 'oauth';
 import { normalizeUrl, JSONParseBig } from '../src/utils/utils';
+require('should-sinon');
 
 const SUCCESSFUL_EMPTY_JSON_RESPONSE = {
   statusCode: 200,

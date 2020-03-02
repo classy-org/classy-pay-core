@@ -1,11 +1,12 @@
 import should = require('should');
 import sinon = require('sinon');
 import {SinonStub} from 'sinon';
-require('should-sinon');
 import { promisify } from 'util';
 import mock = require('mock-require');
-import { ClassyAWSHandler } from '../../src/aws/handler';
 import * as AWSLambda from 'aws-lambda';
+
+import { ClassyAWSHandler } from '../../src/aws/handler';
+require('should-sinon');
 
 type LambdaHandler = (event: any, context: AWSLambda.Context, callback: AWSLambda.Callback<any>) => void;
 type ClassyLambdaHandlerGenerator = (handler: ClassyAWSHandler, appName: string) => LambdaHandler;

@@ -1,12 +1,13 @@
 // tslint:disable max-classes-per-file
-import Config from '../Config';
-import DataSource, {DataSourceConfig} from '../DataSource';
 import Getopt = require('node-getopt');
 import _ = require('lodash');
 import Bluebird = require('bluebird');
 import mysql = require('mysql');
 import {Readable, Writable, Duplex} from 'stream';
 import fs = require('fs');
+
+import Config from '../Config';
+import DataSource, {DataSourceConfig} from '../DataSource';
 const yamljs = require('yamljs');
 
 export type ValidateArgsFunction = (args: Array<string>, dryRun: boolean) => string|undefined;

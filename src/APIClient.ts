@@ -1,9 +1,10 @@
 // tslint:disable:max-classes-per-file
 import { OAuth2 } from 'oauth';
 import * as Logger from 'bunyan';
-import { normalizeUrl, JSONParseBig, requestWithLogs } from './utils/utils';
 import request = require('request');
 import {URL} from 'url';
+
+import { normalizeUrl, JSONParseBig, requestWithLogs } from './utils/utils';
 
 export type MethodType = 'GET'|'POST'|'PUT'|'DELETE';
 
