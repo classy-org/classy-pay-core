@@ -70,15 +70,39 @@ describe('PayClient', () => {
     payClient = null;
   });
 
-  it('Get', async () => {
-    if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
-    requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
-    const obj = await payClient.get('appId', '/some/path');
-    obj.should.be.eql({});
-    signStub.should.have.been.calledOnce();
-    signStub.getCall(0).args.should.be.eql(['GET', '/some/path', 'application/json', undefined]);
-    requestStub.should.have.been.calledOnce();
-    requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('GET', 'appId', '/some/path'));
+  describe('GET', () => {
+    it('general GET', async () => {
+      if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+      requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
+      const obj = await payClient.get('appId', '/some/path');
+      obj.should.be.eql({});
+      signStub.should.have.been.calledOnce();
+      signStub.getCall(0).args.should.be.eql(['GET', '/some/path', 'application/json', undefined]);
+      requestStub.should.have.been.calledOnce();
+      requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('GET', 'appId', '/some/path'));
+    });
+
+    it('path with dashes', async () => {
+      if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+      requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
+      const obj = await payClient.get('appId', '/some/path/2020-03-14');
+      obj.should.be.eql({});
+      signStub.should.have.been.calledOnce();
+      signStub.getCall(0).args.should.be.eql(['GET', '/some/path/2020-03-14', 'application/json', undefined]);
+      requestStub.should.have.been.calledOnce();
+      requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('GET', 'appId', '/some/path/2020-03-14'));
+    });
+
+    it('path with underscore', async () => {
+      if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+      requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
+      const obj = await payClient.get('appId', '/some/path/ch_123');
+      obj.should.be.eql({});
+      signStub.should.have.been.calledOnce();
+      signStub.getCall(0).args.should.be.eql(['GET', '/some/path/ch_123', 'application/json', undefined]);
+      requestStub.should.have.been.calledOnce();
+      requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('GET', 'appId', '/some/path/ch_123'));
+    });
   });
 
   it('Post', async () => {
