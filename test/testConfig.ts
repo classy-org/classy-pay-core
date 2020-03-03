@@ -1,10 +1,11 @@
 import sinon = require('sinon');
 import should = require('should');
-require('should-sinon');
 import _ = require('lodash');
-import Config from '../src/Config';
 import { SinonMock } from 'sinon';
+
+import Config from '../src/Config';
 import { DataSource, DataSourceConfig } from '../src/DataSource';
+require('should-sinon');
 
 describe('Config', () => {
   let config: Config|undefined;

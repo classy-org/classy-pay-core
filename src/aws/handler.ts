@@ -6,8 +6,9 @@ import * as bugsnag from 'bugsnag';
 
 import * as BugsnagFactory from '../utils/bugsnagFactory';
 import { Once } from '../utils/Once';
-import { AWSConfig } from './AWSConfig';
 import { Config } from '../Config';
+
+import { AWSConfig } from './AWSConfig';
 
 export type ClassyAWSHandler = (event: any, context: AWSLambda.Context, config: Config) => any;
 
@@ -34,7 +35,11 @@ export const handlerGenerator = (handler: ClassyAWSHandler, appName: string) => 
       } catch (e) {
         error = e.toString() === '[object Object]' ? new Error(JSON.stringify(e)) : e;
         if (await config.get('bugsnagEnabled')) {
-          await promisify(bugsnag.notify)(error);
+          await promisify(bugsnag.notify)(error, {
+            metaData: {
+              awsRequestId: context.awsRequestId
+            }
+          });
         }
       } finally {
         callback(error, result);

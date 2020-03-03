@@ -1,13 +1,12 @@
 import {UriOptions, UrlOptions} from 'request';
-
-require('source-map-support').install();
-
 import { Promise } from 'bluebird';
 import * as _ from 'lodash';
 import * as Logger from 'bunyan';
 
 import { CreateHMACSigner, HMACSigner } from './utils/hmac256AuthSigner';
 import {RequestOptions, requestWithLogs} from './utils/utils';
+
+require('source-map-support').install();
 
 const PAGE_LIMIT = 25;
 
@@ -97,7 +96,7 @@ export class PayClient {
     if (!_.isString(appId)) {
       throw new Error('App ID must be provided as string to avoid losing precision');
     }
-    if (!resource.match(/^\/[\/A-Za-z0-9\\-]*$/)) {
+    if (!resource.match(/^\/[\/A-Za-z0-9\\-_]*$/)) {
       throw new Error(`Invalid resource: ${resource}`);
     }
     const options = this.getOptions(appId, method, resource, payload, params);

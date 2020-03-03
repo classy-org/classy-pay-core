@@ -8,6 +8,7 @@
     "noImplicitReturns": true,
     "strict": true,
     "alwaysStrict": true,
+    "suppressImplicitAnyIndexErrors": true,
     "lib": [
       "ES6",
       "esnext.asynciterable"

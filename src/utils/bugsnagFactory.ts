@@ -3,7 +3,8 @@ require('source-map-support').install();
 import * as bugsnag from 'bugsnag';
 import * as _ from 'lodash';
 
-const uuidv1 = require('uuid/v1');
+const { v1: uuidv1 } = require('uuid');
+
 
 import Once from './Once';
 

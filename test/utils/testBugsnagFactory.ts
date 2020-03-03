@@ -1,8 +1,8 @@
 import sinon = require('sinon');
 import { SinonStub } from 'sinon';
 import should = require('should');
-require('should-sinon');
 import mock = require('mock-require');
+require('should-sinon');
 
 type initializeFunction = (appName: string, key: string, releaseStage: string) => Promise<void>;
 

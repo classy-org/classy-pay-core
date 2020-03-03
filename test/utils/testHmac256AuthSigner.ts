@@ -1,8 +1,9 @@
 import sinon = require('sinon');
 import should = require('should');
-require('should-sinon');
 import mock = require('mock-require');
+
 import { HMACSignerFactory } from '../../src/utils/hmac256AuthSigner';
+require('should-sinon');
 
 describe('HMAC256AuthSigner', () => {
   let crypto: any;

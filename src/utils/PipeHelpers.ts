@@ -2,6 +2,7 @@
 
 import ParallelTransform = require('parallel-transform');
 import stream = require('stream');
+
 import { unpromisify } from './utils';
 
 export const parallelTransform = (concurrency: number, handler: (data: any) => Promise<any>): stream.Transform =>

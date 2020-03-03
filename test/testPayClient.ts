@@ -1,11 +1,11 @@
 import { SinonStub } from 'sinon';
 import sinon = require('sinon');
 import should = require('should');
-require('should-sinon');
 import _ = require('lodash');
 import mock = require('mock-require');
 
 import PayClient from '../src/PayClient';
+require('should-sinon');
 
 type StubFunction = (...params: any[]) => any;
 
