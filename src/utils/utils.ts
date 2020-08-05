@@ -100,10 +100,10 @@ export const redact = (obj: any) => omitDeepWithKeys(
     'token',
     'province',
     'routingNumber',
-    'ssn',
     'state',
     'zip',
-    'processorDetails'],
+    'processorDetails',
+    'source'],
   '*** REDACTED ***',
 );
 
