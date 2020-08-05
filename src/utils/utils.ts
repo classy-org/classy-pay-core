@@ -14,6 +14,19 @@ export const safeStrConcat = (strings: Array<any>): string => {
   return output;
 };
 
+export const isJSONString = (jsonString: string): boolean => {
+  try {
+    const o = JSON.parse(jsonString);
+
+    if (o && typeof o === 'object') {
+      return true;
+    }
+  }
+  catch (e) { }
+
+  return false;
+};
+
 export const normalizeUrl = (inputUrl: string): string => {
   const m = inputUrl.match(/^(https?:\/\/)([^:/?#]*)(:[0-9]+)?([^?#]*)?(\?[^?]+)?$/);
   if (m) {
@@ -136,7 +149,11 @@ export const requestWithLogs = async (options: RequestOptions, log?: Logger): Pr
         statusCode = (<StatusCodeError> error).statusCode ? (<StatusCodeError> error).statusCode : undefined;
       }
       if (statusCode === 200 && error === undefined) {
-        log.info(redact({request: options, response}), `Response (Good) ${logString}`);
+        const toRedactResponse = _.cloneDeep(response);
+        if (toRedactResponse !== undefined && isJSONString(_.get(toRedactResponse, 'body'))) {
+          toRedactResponse.body = JSON.parse(toRedactResponse.body);
+        }
+        log.info(redact({request: options, response: toRedactResponse}), `Response (Good) ${logString}`);
       } else {
         log.error(
           redact({request: options, response, error}),
