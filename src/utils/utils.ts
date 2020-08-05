@@ -89,7 +89,21 @@ export const omitDeepWithKeys = (obj: any, excludeKeys: Array<string>, replaceme
 
 export const redact = (obj: any) => omitDeepWithKeys(
   obj,
-  ['Authorization'],
+  ['Authorization',
+    'accountNumber',
+    'address1',
+    'address2',
+    'address3',
+    'address4',
+    'city',
+    'email',
+    'token',
+    'province',
+    'routingNumber',
+    'state',
+    'zip',
+    'processorDetails',
+    'source'],
   '*** REDACTED ***',
 );
 
