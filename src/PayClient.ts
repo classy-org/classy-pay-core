@@ -21,10 +21,10 @@ interface RequestResponse {
 
 export interface AppSpecificPayClient {
   list: (resource: string) => Promise<Array<object>>;
-  get: (resource: string) => Promise<string|object>;
-  post: (resource: string, object: object) => Promise<string|object>;
-  put: (resource: string, object: object) => Promise<string|object>;
-  del: (resource: string) => Promise<string|object>;
+  get: (resource: string, params?: object) => Promise<string | object>;
+  post: (resource: string, object: object, params?: object) => Promise<string|object>;
+  put: (resource: string, object: object, params?: object) => Promise<string|object>;
+  del: (resource: string, params?: object) => Promise<string|object>;
 }
 
 export class PayClient {
@@ -116,8 +116,8 @@ export class PayClient {
     };
   }
 
-  private async forObject(appId: string, method: string, resource: string, body?: object): Promise<object|string> {
-    return (await this.request(appId, method, resource, body)).object;
+  private async forObject(appId: string, method: string, resource: string, body?: object, params?: object): Promise<object|string> {
+    return (await this.request(appId, method, resource, body, params)).object;
   }
 
   private async forList(appId: string, resource: string): Promise<Array<object>> {
@@ -164,11 +164,12 @@ export class PayClient {
    *
    * @param {String} appId the pay application id
    * @param {String} resource the pay resource
+   * @param {Object} params additional queries to request
    *
    * @return {Object} an object
    */
-  public async get(appId: string, resource: string): Promise<string|object> {
-    return await this.forObject(appId, 'GET', resource);
+  public async get(appId: string, resource: string, params?: object): Promise<string|object> {
+    return await this.forObject(appId, 'GET', resource, undefined, params);
   }
 
   /**
@@ -177,11 +178,12 @@ export class PayClient {
    * @param {String} appId the pay application id
    * @param {String} resource the pay resource
    * @param {Object} object the object to create
+   * @param {Object} params additional queries to request
    *
    * @return {Object} the created object
    */
-  public async post(appId: string, resource: string, object: object): Promise<string|object> {
-    return await this.forObject(appId, 'POST', resource, object);
+  public async post(appId: string, resource: string, object: object, params?: object): Promise<string|object> {
+    return await this.forObject(appId, 'POST', resource, object, params);
   }
 
   /**
@@ -190,23 +192,25 @@ export class PayClient {
    * @param {String} appId the pay application id
    * @param {String} resource the pay resource
    * @param {Object} object the updated object
+   * @param {Object} params additional queries to request
    *
    * @return {Object} the updated object
    */
-  public async put(appId: string, resource: string, object: object): Promise<string|object> {
+  public async put(appId: string, resource: string, object: object, params?: object): Promise<string|object> {
     return await this.forObject(appId, 'PUT', resource, object);
   }
 
-  /**
-   * Remove an object at a resource.
-   *
-   * @param {String} appId the pay application id
-   * @param {String} resource the pay resource
-   *
-   * @return {Object} the removed object
-   */
-  public async del(appId: string, resource: string): Promise<string|object> {
-    return await this.forObject(appId, 'DELETE', resource);
+  public async del(appId: string, resource: string, params?: object): Promise<string|object> {
+    /**
+     * Remove an object at a resource.
+     *
+     * @param {String} appId the pay application id
+     * @param {String} resource the pay resource
+     * @param {Object} params additional queries to request
+     *
+     * @return {Object} the removed object
+     */
+    return await this.forObject(appId, 'DELETE', resource, undefined, params);
   }
 
   /**
@@ -222,10 +226,10 @@ export class PayClient {
 
     return {
       list: resource => this.list(appId, resource),
-      get: resource => this.get(appId, resource),
-      post: (resource, object) => this.post(appId, resource, object),
-      put: (resource, object) => this.put(appId, resource, object),
-      del: resource => this.del(appId, resource),
+      get: (resource, params) => this.get(appId, resource, params),
+      post: (resource, object, params) => this.post(appId, resource, object, params),
+      put: (resource, object, params) => this.put(appId, resource, object, params),
+      del: (resource, params) => this.del(appId, resource, params),
     };
   }
 }

@@ -44,7 +44,8 @@ class EnvironmentDataSource extends DataSource {
       }
     }
 
-    this.environment = environment;
+    const filteredProcessEnv = _.omit(process.env, ['AWS_SECRET_ACCESS_KEY', 'AWS_ACCESS_KEY_ID']);
+    this.environment = _.extend(environment, filteredProcessEnv);
   }
 
   public async get(key: string): Promise<any> {
