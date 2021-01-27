@@ -197,7 +197,7 @@ export class PayClient {
    * @return {Object} the updated object
    */
   public async put(appId: string, resource: string, object: object, params?: object): Promise<string|object> {
-    return await this.forObject(appId, 'PUT', resource, object);
+    return await this.forObject(appId, 'PUT', resource, object, params);
   }
 
   public async del(appId: string, resource: string, params?: object): Promise<string|object> {
