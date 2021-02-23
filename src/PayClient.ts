@@ -1,10 +1,10 @@
-import {UriOptions, UrlOptions} from 'request';
+import { UriOptions, UrlOptions } from 'request';
 import { Promise } from 'bluebird';
 import * as _ from 'lodash';
 import * as Logger from 'bunyan';
 
 import { CreateHMACSigner, HMACSigner } from './utils/hmac256AuthSigner';
-import {RequestOptions, requestWithLogs} from './utils/utils';
+import { RequestOptions, requestWithLogs } from './utils/utils';
 
 require('source-map-support').install();
 
@@ -15,21 +15,24 @@ interface PayResponse {
 }
 
 interface RequestResponse {
-  status: number;
-  object: PayResponse | string;
+  status: number | undefined;
+  object: PayResponse | string | object;
+  callback: ((error: any, object: object) => void) | null | undefined ;
 }
+
+
 
 export interface AppSpecificPayClient {
   list: (resource: string) => Promise<Array<object>>;
   get: (resource: string, params?: object) => Promise<string | object>;
-  post: (resource: string, object: object, params?: object) => Promise<string|object>;
-  put: (resource: string, object: object, params?: object) => Promise<string|object>;
-  del: (resource: string, params?: object) => Promise<string|object>;
+  post: (resource: string, object: object, params?: object) => Promise<string | object>;
+  put: (resource: string, object: object, params?: object) => Promise<string | object>;
+  del: (resource: string, params?: object) => Promise<string | object>;
 }
 
 export class PayClient {
   private readonly apiUrl: string;
-  private readonly config: { timeout?: number};
+  private readonly config: { timeout?: number };
   private readonly sign: HMACSigner;
   private readonly log?: Logger;
   private readonly version?: string;
@@ -78,7 +81,7 @@ export class PayClient {
     return {
       method,
       url: `${this.apiUrl}${resource}`,
-      qs:  _.extend({appId, meta: true}, params),
+      qs: _.extend({ appId, meta: true }, params),
       body: payload ? JSON.stringify(payload) : undefined,
       timeout: this.config.timeout,
       headers: this.getHeaders(method, resource, payload),
@@ -86,13 +89,44 @@ export class PayClient {
     };
   }
 
+  private getRequest (error: any, response: object | undefined, cb: ((error: any, object: object) => void) | null | undefined): any {
+    const body = _.get(response, 'body');
+    const headers = _.get(response, 'headers');
+    const status = _.get(response, 'statusCode');
+
+    if (cb) {
+      return cb(
+        error,
+        {
+          status,
+          object: (body && headers && headers['content-type'] &&
+            _.includes(headers['content-type'], 'application/json')) ?
+            JSON.parse(body)
+            : _.get(response, 'body'),
+        }
+      )
+    } else {
+      return {
+        status,
+        object: (body && headers && headers['content-type'] &&
+          _.includes(headers['content-type'], 'application/json')) ?
+          JSON.parse(body)
+          : _.get(response, 'body'),
+      };
+    }
+  }
+
   private async request(
     appId: string,
     method: string,
     resource: string,
     payload?: object,
-    params?: object)
+    params?: object,
+    callback?: ((error: any, object: object) => void) | null | undefined)
     : Promise<RequestResponse> {
+    let response;
+    let error;
+
     if (!_.isString(appId)) {
       throw new Error('App ID must be provided as string to avoid losing precision');
     }
@@ -101,22 +135,16 @@ export class PayClient {
     }
     const options = this.getOptions(appId, method, resource, payload, params);
 
-    const response = await requestWithLogs(options, this.log);
-    const status = response.statusCode;
-    if (status !== 200) {
-      throw new Error(`Server returned error code ${status} from ${method} ${resource}: ${response && response.body}`);
+    try {
+      response = await requestWithLogs(options, this.log);
+      return this.getRequest(null, response, callback)
+    } catch (e) {
+      error = e.message;
+      return this.getRequest(error, response, callback)
     }
-
-    return {
-      status,
-      object: (response.body && response.headers && response.headers['content-type'] &&
-        _.includes(response.headers['content-type'], 'application/json')) ?
-        JSON.parse(response.body)
-        : _.get(response, 'body'),
-    };
   }
 
-  private async forObject(appId: string, method: string, resource: string, body?: object, params?: object): Promise<object|string> {
+  private async forObject(appId: string, method: string, resource: string, body?: object, params?: object): Promise<object | string> {
     return (await this.request(appId, method, resource, body, params)).object;
   }
 
@@ -133,7 +161,7 @@ export class PayClient {
             'GET',
             resource,
             undefined,
-            {limit: PAGE_LIMIT, offset: page},
+            { limit: PAGE_LIMIT, offset: page },
           );
           if (innerResponse.status !== 200 || typeof innerResponse.object === 'string') {
             throw new Error(`Expected server response with object, instead got: ${innerResponse}`);
@@ -141,8 +169,8 @@ export class PayClient {
             return innerResponse.object;
           }
         }, {
-          concurrency: 10,
-        });
+        concurrency: 10,
+      });
       return _.flatten(results);
     }
   }
@@ -168,7 +196,7 @@ export class PayClient {
    *
    * @return {Object} an object
    */
-  public async get(appId: string, resource: string, params?: object): Promise<string|object> {
+  public async get(appId: string, resource: string, params?: object): Promise<string | object> {
     return await this.forObject(appId, 'GET', resource, undefined, params);
   }
 
@@ -182,7 +210,7 @@ export class PayClient {
    *
    * @return {Object} the created object
    */
-  public async post(appId: string, resource: string, object: object, params?: object): Promise<string|object> {
+  public async post(appId: string, resource: string, object: object, params?: object): Promise<string | object> {
     return await this.forObject(appId, 'POST', resource, object, params);
   }
 
@@ -196,11 +224,13 @@ export class PayClient {
    *
    * @return {Object} the updated object
    */
-  public async put(appId: string, resource: string, object: object, params?: object): Promise<string|object> {
+
+
+  public async put(appId: string, resource: string, object: object, params?: object): Promise<string | object> {
     return await this.forObject(appId, 'PUT', resource, object);
   }
 
-  public async del(appId: string, resource: string, params?: object): Promise<string|object> {
+  public async del(appId: string, resource: string, params?: object): Promise<string | object> {
     /**
      * Remove an object at a resource.
      *
