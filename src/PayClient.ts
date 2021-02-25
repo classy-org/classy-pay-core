@@ -105,16 +105,17 @@ export class PayClient {
             : _.get(response, 'body'),
         }
       )
-    } else {
-      return {
-        status,
-        object: (body && headers && headers['content-type'] &&
-          _.includes(headers['content-type'], 'application/json')) ?
-          JSON.parse(body)
-          : _.get(response, 'body'),
-      };
+
     }
-  }
+
+    return {
+      status,
+      object: (body && headers && headers['content-type'] &&
+        _.includes(headers['content-type'], 'application/json')) ?
+        JSON.parse(body)
+        : _.get(response, 'body'),
+    };
+
 
   private async request(
     appId: string,
