@@ -105,7 +105,6 @@ export class PayClient {
             : _.get(response, 'body'),
         }
       )
-
     }
 
     return {
@@ -115,7 +114,7 @@ export class PayClient {
         JSON.parse(body)
         : _.get(response, 'body'),
     };
-
+  }
 
   private async request(
     appId: string,
