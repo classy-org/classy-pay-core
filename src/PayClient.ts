@@ -153,7 +153,8 @@ export class PayClient {
     if (typeof responseObj === 'string') {
       throw new Error(`Expected server response with count, instead got: ${responseObj}`);
     } else {
-      const max = responseObj.count;
+      // tslint:disable-next-line
+      const max = responseObj['count'];
       const results = await Promise.map(_.range(0, max, PAGE_LIMIT),
         async page => {
           const innerResponse = await this.request(
