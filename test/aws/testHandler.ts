@@ -58,8 +58,8 @@ describe('AWS Handler', () => {
     const result = await (<any> promisify(awsHandler(handlerStub, 'APP')))({}, {});
     result.should.be.eql('HELLO');
 
-    bugsnagFactory.initialize.should.have.been.calledOnce();
-    AWSConfigStub.should.be.calledOnce();
+    bugsnagFactory.initialize.calledOnce.should.be.True();
+    AWSConfigStub.calledOnce.should.be.True();
     AWSConfigGetStub.getCalls().length.should.be.eql(3);
 
     AWSConfigGetStub.getCall(0).args.should.be.eql(['bugsnagEnabled']);
@@ -68,7 +68,7 @@ describe('AWS Handler', () => {
 
     bugsnag.notify.callCount.should.be.eql(0);
 
-    handlerStub.should.be.calledOnce();
+    handlerStub.calledOnce.should.be.True();
   });
 
   it('Multiple handler calls should invoke initialization only once', async () => {
@@ -83,8 +83,8 @@ describe('AWS Handler', () => {
     await handler({}, {});
     await handler({}, {});
 
-    bugsnagFactory.initialize.should.be.calledOnce();
-    AWSConfigStub.should.be.calledOnce();
+    bugsnagFactory.initialize.calledOnce.should.be.True();
+    AWSConfigStub.calledOnce.should.be.True();
     AWSConfigGetStub.getCalls().length.should.be.eql(3);
 
     AWSConfigGetStub.getCall(0).args.should.be.eql(['bugsnagEnabled']);
@@ -93,7 +93,7 @@ describe('AWS Handler', () => {
 
     bugsnag.notify.callCount.should.be.eql(0);
 
-    handlerStub.should.be.calledThrice();
+    handlerStub.calledThrice.should.be.True();
   });
 
   it('Error should propagate correctly', async () => {
@@ -112,8 +112,8 @@ describe('AWS Handler', () => {
 
     should.exist(error);
 
-    bugsnagFactory.initialize.should.be.calledOnce();
-    AWSConfigStub.should.be.calledOnce();
+    bugsnagFactory.initialize.calledOnce.should.be.True();
+    AWSConfigStub.calledOnce.should.be.True();
     AWSConfigGetStub.getCalls().length.should.be.eql(4);
 
     AWSConfigGetStub.getCall(0).args.should.be.eql(['bugsnagEnabled']);
@@ -123,7 +123,7 @@ describe('AWS Handler', () => {
 
     bugsnag.notify.callCount.should.be.eql(1);
 
-    handlerStub.should.be.calledOnce();
+    handlerStub.calledOnce.should.be.True();
   });
 
   it('Wraps non-error object throwables in an Error object', async () => {
@@ -144,8 +144,8 @@ describe('AWS Handler', () => {
     (error instanceof Error).should.be.true();
     error.message.should.be.eql('{}');
 
-    bugsnagFactory.initialize.should.be.calledOnce();
-    AWSConfigStub.should.be.calledOnce();
+    bugsnagFactory.initialize.calledOnce.should.be.True();
+    AWSConfigStub.calledOnce.should.be.True();
     AWSConfigGetStub.getCalls().length.should.be.eql(4);
 
     AWSConfigGetStub.getCall(0).args.should.be.eql(['bugsnagEnabled']);
@@ -155,6 +155,6 @@ describe('AWS Handler', () => {
 
     bugsnag.notify.callCount.should.be.eql(1);
 
-    handlerStub.should.be.calledOnce();
+    handlerStub.calledOnce.should.be.True();
   });
 });

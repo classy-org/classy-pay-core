@@ -18,7 +18,7 @@ describe('Once', () => {
     complete = true;
     await once.do();
     await once.do();
-    stub.should.be.calledOnce();
+    stub.calledOnce.should.be.True();
     once.getDone().should.be.equal(true);
   });
 });

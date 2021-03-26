@@ -76,9 +76,9 @@ describe('PayClient', () => {
       requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
       const obj = await payClient.get('appId', '/some/path');
       obj.should.be.eql({});
-      signStub.should.have.been.calledOnce();
+      signStub.calledOnce.should.be.True();
       signStub.getCall(0).args.should.be.eql(['GET', '/some/path', 'application/json', undefined]);
-      requestStub.should.have.been.calledOnce();
+      requestStub.calledOnce.should.be.True();
       requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('GET', 'appId', '/some/path'));
     });
 
@@ -87,9 +87,9 @@ describe('PayClient', () => {
       requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
       const obj = await payClient.get('appId', '/some/path/2020-03-14');
       obj.should.be.eql({});
-      signStub.should.have.been.calledOnce();
+      signStub.calledOnce.should.be.True();
       signStub.getCall(0).args.should.be.eql(['GET', '/some/path/2020-03-14', 'application/json', undefined]);
-      requestStub.should.have.been.calledOnce();
+      requestStub.calledOnce.should.be.True();
       requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('GET', 'appId', '/some/path/2020-03-14'));
     });
 
@@ -98,9 +98,9 @@ describe('PayClient', () => {
       requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
       const obj = await payClient.get('appId', '/some/path/ch_123');
       obj.should.be.eql({});
-      signStub.should.have.been.calledOnce();
+      signStub.calledOnce.should.be.True();
       signStub.getCall(0).args.should.be.eql(['GET', '/some/path/ch_123', 'application/json', undefined]);
-      requestStub.should.have.been.calledOnce();
+      requestStub.calledOnce.should.be.True();
       requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('GET', 'appId', '/some/path/ch_123'));
     });
   });
@@ -110,9 +110,9 @@ describe('PayClient', () => {
     requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
     const obj = await payClient.post('appId', '/some/path', {});
     obj.should.be.eql({});
-    signStub.should.have.been.calledOnce();
+    signStub.calledOnce.should.be.True();
     signStub.getCall(0).args.should.be.eql(['POST', '/some/path', 'application/json', '{}']);
-    requestStub.should.have.been.calledOnce();
+    requestStub.calledOnce.should.be.True();
     requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('POST', 'appId', '/some/path', '{}'));
   });
 
@@ -121,9 +121,9 @@ describe('PayClient', () => {
     requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
     const obj = await payClient.put('appId', '/some/path', {});
     obj.should.be.eql({});
-    signStub.should.have.been.calledOnce();
+    signStub.calledOnce.should.be.True();
     signStub.getCall(0).args.should.be.eql(['PUT', '/some/path', 'application/json', '{}']);
-    requestStub.should.have.been.calledOnce();
+    requestStub.calledOnce.should.be.True();
     requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('PUT', 'appId', '/some/path', '{}'));
   });
 
@@ -132,9 +132,9 @@ describe('PayClient', () => {
     requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
     const obj = await payClient.del('appId', '/some/path');
     obj.should.be.eql({});
-    signStub.should.have.been.calledOnce();
+    signStub.calledOnce.should.be.True();
     signStub.getCall(0).args.should.be.eql(['DELETE', '/some/path', 'application/json', undefined]);
-    requestStub.should.have.been.calledOnce();
+    requestStub.calledOnce.should.be.True();
     requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('DELETE', 'appId', '/some/path'));
   });
 
@@ -162,11 +162,11 @@ describe('PayClient', () => {
     ));
     const obj = await payClient.list('appId', '/some/path');
     obj.should.be.eql(_.map(_.range(0, 50), () => ({})));
-    signStub.should.have.been.calledThrice();
+    signStub.calledThrice.should.be.True();
     signStub.getCall(0).args.should.be.eql(['GET', '/some/path/count', 'application/json', undefined]);
     signStub.getCall(1).args.should.be.eql(['GET', '/some/path', 'application/json', undefined]);
     signStub.getCall(2).args.should.be.eql(['GET', '/some/path', 'application/json', undefined]);
-    requestStub.should.have.been.calledThrice();
+    requestStub.calledThrice.should.be.True();
     requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('GET', 'appId', '/some/path/count'));
     requestStub.getCall(1).args[0].should.be.eql(
       buildExpectedRequest('GET', 'appId', '/some/path', undefined, {limit: 25, offset: 0}),
@@ -243,7 +243,7 @@ describe('PayClient', () => {
       }
       const obj = await payClient.forAppId('appId').get('/some/path');
       obj.should.be.eql({});
-      stubs.get.should.have.been.calledOnce();
+      stubs.get.calledOnce.should.be.True();
     });
 
     it('Post', async () => {
@@ -252,7 +252,7 @@ describe('PayClient', () => {
       }
       const obj = await payClient.forAppId('appId').post('/some/path', {});
       obj.should.be.eql({});
-      stubs.post.should.have.been.calledOnce();
+      stubs.post.calledOnce.should.be.True();
     });
 
     it('Put', async () => {
@@ -261,7 +261,7 @@ describe('PayClient', () => {
       }
       const obj = await payClient.forAppId('appId').put('/some/path', {});
       obj.should.be.eql({});
-      stubs.put.should.have.been.calledOnce();
+      stubs.put.calledOnce.should.be.True();
     });
 
     it('Del(ete)', async () => {
@@ -270,7 +270,7 @@ describe('PayClient', () => {
       }
       const obj = await payClient.forAppId('appId').del('/some/path');
       obj.should.be.eql({});
-      stubs.del.should.have.been.calledOnce();
+      stubs.del.calledOnce.should.be.True();
     });
 
     it('List', async () => {
@@ -279,7 +279,7 @@ describe('PayClient', () => {
       }
       const obj = await payClient.forAppId('appId').list('/some/path');
       obj.should.be.eql({});
-      stubs.list.should.have.been.calledOnce();
+      stubs.list.calledOnce.should.be.True();
     });
 
     it('Rejects non-string appId', async () => {
