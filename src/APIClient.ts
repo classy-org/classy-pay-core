@@ -92,7 +92,7 @@ export class APIClient {
     }
 
     const response = await requestWithLogs(options, this.log);
-    if (response.statusCode !== 200) {
+    if (response.statusCode < 200 || response.statusCode > 299) {
       throw new RequestResponseError(
         response,
         `API client received status code ${response.statusCode}: ${response.body}`,
