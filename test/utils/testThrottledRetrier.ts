@@ -9,7 +9,7 @@ describe('Throttled retrier', () => {
     const stub = sinon.stub().resolves('BLAH');
     const f = throttledRetrier(stub, { disableErrorLogging: true });
     const v = await f();
-    stub.should.be.calledOnce();
+    stub.calledOnce.should.be.True();
     v.should.be.eql('BLAH');
   });
 
@@ -77,7 +77,7 @@ describe('Throttled retrier', () => {
       sleepAmountFunction: attemptNumber => 10 * attemptNumber,
     });
     const v = await f();
-    stub.should.be.calledTwice();
+    stub.calledTwice.should.be.True();
     v.should.be.eql('BLAH2');
   });
 
@@ -97,7 +97,7 @@ describe('Throttled retrier', () => {
     } catch (e) {
       error = e;
     }
-    stub.should.be.calledOnce();
+    stub.calledOnce.should.be.True();
     should.exist(error);
     should.not.exist(v);
   });

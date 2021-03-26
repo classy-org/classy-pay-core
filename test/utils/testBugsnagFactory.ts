@@ -60,9 +60,9 @@ describe('Bugsnag Factory', () => {
     if (!initialize || !processStubs || !bugsnagStubs) throw new Error('Test wasn\'t correctly set up');
     await initialize('appName', 'key', 'releaseStage');
     await initialize('appName', 'key', 'releaseStage');
-    processStubs.listeners.should.have.been.calledOnce();
-    processStubs.removeListener.should.have.been.calledTwice();
-    processStubs.on.should.have.been.calledTwice();
+    processStubs.listeners.calledOnce.should.be.True();
+    processStubs.removeListener.calledTwice.should.be.True();
+    processStubs.on.calledTwice.should.be.True();
     processStubs.on.getCall(0).args[0].should.be.eql('uncaughtException');
     processStubs.on.getCall(1).args[0].should.be.eql('unhandledRejection');
   });
@@ -82,7 +82,7 @@ describe('Bugsnag Factory', () => {
     if (!initialize || !processStubs || !bugsnagStubs) throw new Error('Test wasn\'t correctly set up');
     bugsnagStubs.notify.resetHistory();
     processStubs.on.getCall(0).args[1]('error');
-    bugsnagStubs.notify.should.have.been.calledOnce();
+    bugsnagStubs.notify.calledOnce.should.be.True();
     bugsnagStubs.notify.getCall(0).args[0].should.eql('error');
   });
 
@@ -90,7 +90,7 @@ describe('Bugsnag Factory', () => {
     if (!initialize || !processStubs || !bugsnagStubs) throw new Error('Test wasn\'t correctly set up');
     bugsnagStubs.notify.resetHistory();
     processStubs.on.getCall(1).args[1]('error');
-    bugsnagStubs.notify.should.have.been.calledOnce();
+    bugsnagStubs.notify.calledOnce.should.be.True();
     bugsnagStubs.notify.getCall(0).args[0].should.eql('error');
   });
 });
