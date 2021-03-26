@@ -103,7 +103,7 @@ export class PayClient {
 
     const response = await requestWithLogs(options, this.log);
     const status = response.statusCode;
-    if (status !== 200) {
+    if (status < 200 || status > 299) {
       throw new Error(`Server returned error code ${status} from ${method} ${resource}: ${response && response.body}`);
     }
 
@@ -135,7 +135,7 @@ export class PayClient {
             undefined,
             {limit: PAGE_LIMIT, offset: page},
           );
-          if (innerResponse.status !== 200 || typeof innerResponse.object === 'string') {
+          if (innerResponse.status < 200 || innerResponse.status > 299 || typeof innerResponse.object === 'string') {
             throw new Error(`Expected server response with object, instead got: ${innerResponse}`);
           } else {
             return innerResponse.object;
