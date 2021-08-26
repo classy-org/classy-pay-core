@@ -140,7 +140,7 @@ describe('API Client', () => {
 
     const result = await apiClient.getAll('/some/path/to/something?q=some_query_param');
 
-    // https://stackoverflow.com/questions/56298481/how-to-fix-object-null-prototype-title-product
+    // returning back as [Object {},...] vs [{}, ...], doing below as a way to convert back to fix test
     const resultResponse = JSON.parse(JSON.stringify(result));
     resultResponse.should.be.eql([{a: 'b'}, {c: 'd'}, {e: 'f'}]);
     oauth2Stub.getCalls().length.should.be.eql(1);
