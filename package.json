@@ -1,6 +1,6 @@
 {
   "name": "classy-pay-core",
-  "version": "0.2.18",
+  "version": "0.2.19",
   "description": "Shared tools used in ClassyPay-related projects",
   "main": "lib/index.js",
   "scripts": {
@@ -41,7 +41,7 @@
     "bluebird": "^3.5.1",
     "bugsnag": "^2.1.3",
     "bunyan": "^1.8.14",
-    "json-bigint": "^0.3.1",
+    "json-bigint": "^1.0.0",
     "lodash": "^4.17.19",
     "mysql": "^2.16.0",
     "node-getopt": "^0.3.2",

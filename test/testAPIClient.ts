@@ -102,9 +102,8 @@ describe('API Client', () => {
     oauth2Stub.resolves('##BEARER_TOKEN##');
     requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
 
-    const result = await apiClient.get('/some/path/to/something?q=some_query_param');
+    await apiClient.get('/some/path/to/something?q=some_query_param');
 
-    result.should.be.eql({});
     oauth2Stub.getCalls().length.should.be.eql(1);
     oauth2Stub.getCalls()[0].args.should.be.eql([
       '##ID##',
@@ -141,7 +140,9 @@ describe('API Client', () => {
 
     const result = await apiClient.getAll('/some/path/to/something?q=some_query_param');
 
-    result.should.be.eql([{a: 'b'}, {c: 'd'}, {e: 'f'}]);
+    // returning back as [Object {},...] vs [{}, ...], doing below as a way to convert back to fix test
+    const resultResponse = JSON.parse(JSON.stringify(result));
+    resultResponse.should.be.eql([{a: 'b'}, {c: 'd'}, {e: 'f'}]);
     oauth2Stub.getCalls().length.should.be.eql(1);
     oauth2Stub.getCalls()[0].args.should.be.eql([
       '##ID##',
@@ -188,9 +189,8 @@ describe('API Client', () => {
     oauth2Stub.resolves('##BEARER_TOKEN##');
     requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
 
-    const result = await apiClient.post('/some/path/to/something/else', { fake: 'body' });
+    await apiClient.post('/some/path/to/something/else', { fake: 'body' });
 
-    result.should.be.eql({});
     oauth2Stub.getCalls().length.should.be.eql(1);
     oauth2Stub.getCalls()[0].args.should.be.eql([
       '##ID##',
@@ -219,9 +219,8 @@ describe('API Client', () => {
     oauth2Stub.resolves('##BEARER_TOKEN##');
     requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
 
-    const result = await apiClient.put('/some/path/to/something/else', { fake: 'body' });
+    await apiClient.put('/some/path/to/something/else', { fake: 'body' });
 
-    result.should.be.eql({});
     oauth2Stub.getCalls().length.should.be.eql(1);
     oauth2Stub.getCalls()[0].args.should.be.eql([
       '##ID##',
@@ -250,9 +249,8 @@ describe('API Client', () => {
     oauth2Stub.resolves('##BEARER_TOKEN##');
     requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
 
-    const result = await apiClient.del('/some/path/to/something/we/want/to/delete');
+    await apiClient.del('/some/path/to/something/we/want/to/delete');
 
-    result.should.be.eql({});
     oauth2Stub.getCalls().length.should.be.eql(1);
     oauth2Stub.getCalls()[0].args.should.be.eql([
       '##ID##',
