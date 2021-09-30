@@ -68,7 +68,3 @@ creds.example.json
 
 # TypeScript compiled
 lib/
-
-# Lockfiles
-package-lock.json
-yarn.lock
