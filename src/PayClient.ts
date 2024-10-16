@@ -51,7 +51,7 @@ export class PayClient {
     this.sign = CreateHMACSigner('CWS', token, secret);
   }
 
-  private getHeaders(method: string, resource: string, payload?: object): object {
+  private getHeaders(method: string, resource: string, payload?: object, idempotencyKey?: string): object {
     const headers: any = {
       'Authorization': this.sign(
         method,
@@ -65,6 +65,9 @@ export class PayClient {
     if (this.version) {
       headers['x-classypay-version'] = this.version;
     }
+    if (idempotencyKey) {
+      headers['x-classypay-idempotency-key'] = idempotencyKey;
+    }
     return headers;
   }
 
@@ -73,7 +76,8 @@ export class PayClient {
     method: string,
     resource: string,
     payload?: object,
-    params?: object)
+    params?: object,
+    idempotencyKey?: string)
     : RequestOptions {
     return {
       method,
@@ -81,7 +85,7 @@ export class PayClient {
       qs:  _.extend({appId, meta: true}, params),
       body: payload ? JSON.stringify(payload) : undefined,
       timeout: this.config.timeout,
-      headers: this.getHeaders(method, resource, payload),
+      headers: this.getHeaders(method, resource, payload, idempotencyKey),
       resolveWithFullResponse: true,
     };
   }
@@ -91,7 +95,8 @@ export class PayClient {
     method: string,
     resource: string,
     payload?: object,
-    params?: object)
+    params?: object,
+    idempotencyKey?: string)
     : Promise<RequestResponse> {
     if (!_.isString(appId)) {
       throw new Error('App ID must be provided as string to avoid losing precision');
@@ -99,8 +104,7 @@ export class PayClient {
     if (!resource.match(/^\/[\/A-Za-z0-9_\\-]*$/)) {
       throw new Error(`Invalid resource: ${resource}`);
     }
-    const options = this.getOptions(appId, method, resource, payload, params);
-
+    const options = this.getOptions(appId, method, resource, payload, params, idempotencyKey);
     const response = await requestWithLogs(options, this.log);
     const status = response.statusCode;
     if (status < 200 || status > 299) {
@@ -116,8 +120,8 @@ export class PayClient {
     };
   }
 
-  private async forObject(appId: string, method: string, resource: string, body?: object, params?: object): Promise<object|string> {
-    return (await this.request(appId, method, resource, body, params)).object;
+  private async forObject(appId: string, method: string, resource: string, body?: object, params?: object, idempotencyKey?: string): Promise<object|string> {
+    return (await this.request(appId, method, resource, body, params, idempotencyKey)).object;
   }
 
   private async forList(appId: string, resource: string): Promise<Array<object>> {
@@ -179,11 +183,12 @@ export class PayClient {
    * @param {String} resource the pay resource
    * @param {Object} object the object to create
    * @param {Object} params additional queries to request
+   * @param {String} idempotencyKey
    *
    * @return {Object} the created object
    */
-  public async post(appId: string, resource: string, object: object, params?: object): Promise<string|object> {
-    return await this.forObject(appId, 'POST', resource, object, params);
+  public async post(appId: string, resource: string, object: object, params?: object, idempotencyKey?: string): Promise<string|object> {
+    return await this.forObject(appId, 'POST', resource, object, params, idempotencyKey);
   }
 
   /**
@@ -193,11 +198,12 @@ export class PayClient {
    * @param {String} resource the pay resource
    * @param {Object} object the updated object
    * @param {Object} params additional queries to request
+   * @param {String} idempotencyKey
    *
    * @return {Object} the updated object
    */
-  public async put(appId: string, resource: string, object: object, params?: object): Promise<string|object> {
-    return await this.forObject(appId, 'PUT', resource, object, params);
+  public async put(appId: string, resource: string, object: object, params?: object, idempotencyKey?: string): Promise<string|object> {
+    return await this.forObject(appId, 'PUT', resource, object, params, idempotencyKey);
   }
 
   public async del(appId: string, resource: string, params?: object): Promise<string|object> {

@@ -25,22 +25,30 @@ const BAD_RESPONSE = {
   body: 'Server error!',
 };
 
-const buildExpectedRequest = (method: string, appId: string, path: string, body?: string, qs: object = {}) => ({
-  method,
-  url: `##URL##${path}`,
-  qs: _.extend({
-    appId,
-    meta: true,
-  }, qs),
-  body,
-  timeout: undefined,
-  headers: {
-    'Authorization': '##SIGNATURE##',
-    'User-Agent': 'ClassyPay Node.JS',
-    'Content-Type': body ? 'application/json' : undefined,
-  },
-  resolveWithFullResponse: true,
-});
+const buildExpectedRequest = (method: string, appId: string, path: string, body?: string, qs: object = {}, idempotencyKey?: string) => {
+  const expectedRequest = {
+    method,
+    url: `##URL##${path}`,
+    qs: _.extend({
+      appId,
+      meta: true,
+    }, qs),
+    body,
+    timeout: undefined,
+    headers: {
+      'Authorization': '##SIGNATURE##',
+      'User-Agent': 'ClassyPay Node.JS',
+      'Content-Type': body ? 'application/json' : undefined,
+    },
+    resolveWithFullResponse: true,
+  }
+
+  if (idempotencyKey) {
+    expectedRequest.headers['x-classypay-idempotency-key'] = idempotencyKey;
+  }
+
+  return expectedRequest;
+};
 
 describe('PayClient', () => {
   let signStub: SinonStub|null;
@@ -174,6 +182,30 @@ describe('PayClient', () => {
     requestStub.getCall(2).args[0].should.be.eql(
       buildExpectedRequest('GET', 'appId', '/some/path', undefined, {limit: 25, offset: 25}),
     );
+  });
+
+  it('Post accepts idempotencyKey', async () => {
+    if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+    requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
+    const idempotencyKey = 'myIdempotencyKey';
+    const obj = await payClient.post('appId', '/some/path', {}, undefined, idempotencyKey);
+    obj.should.be.eql({});
+    signStub.calledOnce.should.be.True();
+    signStub.getCall(0).args.should.be.eql(['POST', '/some/path', 'application/json', '{}']);
+    requestStub.calledOnce.should.be.True();
+    requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('POST', 'appId', '/some/path', '{}', undefined, idempotencyKey));
+  });
+
+  it('Put accepts idempotencyKey', async () => {
+    if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+    requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
+    const idempotencyKey = 'myIdempotencyKey';
+    const obj = await payClient.put('appId', '/some/path', {}, undefined, idempotencyKey);
+    obj.should.be.eql({});
+    signStub.calledOnce.should.be.True();
+    signStub.getCall(0).args.should.be.eql(['PUT', '/some/path', 'application/json', '{}']);
+    requestStub.calledOnce.should.be.True();
+    requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('PUT', 'appId', '/some/path', '{}', undefined, idempotencyKey));
   });
 
   it('Rejects non-string appId', async () => {
