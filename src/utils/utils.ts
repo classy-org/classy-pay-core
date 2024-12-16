@@ -1,8 +1,6 @@
 import * as Logger from 'bunyan';
-import request = require('request');
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import * as _ from 'lodash';
-import req = require('request-promise');
-import {StatusCodeError} from 'request-promise/errors';
 
 export const safeStrConcat = (strings: Array<any>): string => {
   let output = '';
@@ -21,8 +19,7 @@ export const isJSONString = (jsonString: string): boolean => {
     if (o && typeof o === 'object') {
       return true;
     }
-  }
-  catch (e) { }
+  } catch (e) {}
 
   return false;
 };
@@ -55,7 +52,7 @@ const jsonParse = require('json-bigint')({ storeAsString: true }).parse;
 
 export const JSONParseBig = (json: string): any => require('json-bigint')({ storeAsString: true }).parse(json);
 
-export const stringToBoolean = (input: string|undefined, defaultValue: boolean = false): boolean => {
+export const stringToBoolean = (input: string | undefined, defaultValue: boolean = false): boolean => {
   if (input) {
     if (_.toLower(input) === 'true') {
       return true;
@@ -70,9 +67,9 @@ export const stringToBoolean = (input: string|undefined, defaultValue: boolean =
   return defaultValue;
 };
 
-type RequestOptionsWithUri = request.UriOptions & req.RequestPromiseOptions;
-type RequestOptionsWithUrl = request.UrlOptions & req.RequestPromiseOptions;
-export type RequestOptions = RequestOptionsWithUri | RequestOptionsWithUrl;
+type AxiosRequestOptions = AxiosRequestConfig;
+
+type AxiosResponseWithBody<T = any> = AxiosResponse<T> & { body?: T };
 
 export const omitDeepWithKeys = (obj: any, excludeKeys: Array<string>, replacementValue?: string) => {
   const stackSet = new Set();
@@ -100,43 +97,44 @@ export const omitDeepWithKeys = (obj: any, excludeKeys: Array<string>, replaceme
   return newObj;
 };
 
-export const redact = (obj: any) => omitDeepWithKeys(
-  obj,
-  ['Authorization',
-    'accountNumber',
-    'address1',
-    'address2',
-    'address3',
-    'address4',
-    'city',
-    'email',
-    'token',
-    'province',
-    'routingNumber',
-    'state',
-    'zip',
-    'processorDetails',
-    'source'],
-  '*** REDACTED ***',
-);
+export const redact = (obj: any) =>
+  omitDeepWithKeys(
+    obj,
+    [
+      'Authorization',
+      'accountNumber',
+      'address1',
+      'address2',
+      'address3',
+      'address4',
+      'city',
+      'email',
+      'token',
+      'province',
+      'routingNumber',
+      'state',
+      'zip',
+      'processorDetails',
+      'source',
+    ],
+    '*** REDACTED ***'
+  );
 
-export const requestWithLogs = async (options: RequestOptions, log?: Logger): Promise<request.Response> => {
+export const requestWithLogs = async (
+  options: AxiosRequestOptions,
+  log?: Logger
+): Promise<AxiosResponseWithBody> => {
   let logString;
   if (log) {
-    let location;
-    if ('url' in options) {
-      location = options.url;
-    } else if ('uri' in options) {
-      location = options.uri;
-    }
-    logString = `${options.method} ${location}`;
+    const location = options.url;
+    logString = `${options.method?.toUpperCase()} ${location}`;
 
-    log.info(redact({request: options}), `Request ${logString}`);
+    log.info(redact({ request: options }), `Request ${logString}`);
   }
-  let response: undefined|request.Response;
-  let error: undefined|Error;
+  let response: undefined | AxiosResponseWithBody;
+  let error: undefined | Error;
   try {
-    const retValue = await req(options);
+    const retValue = await axios(options);
     response = retValue;
     return retValue;
   } catch (e) {
@@ -144,33 +142,36 @@ export const requestWithLogs = async (options: RequestOptions, log?: Logger): Pr
     throw e;
   } finally {
     if (log) {
-      let statusCode = response ? response.statusCode : undefined;
-      if (!statusCode && error && 'statusCode' in error) {
-        statusCode = (<StatusCodeError> error).statusCode ? (<StatusCodeError> error).statusCode : undefined;
+      let statusCode = response ? response.status : undefined;
+      if (!statusCode && error && axios.isAxiosError(error) && error.response) {
+        statusCode = error.response.status;
       }
       if (statusCode === 200 && error === undefined) {
         const toRedactResponse = _.cloneDeep(response);
-        if (toRedactResponse !== undefined && isJSONString(_.get(toRedactResponse, 'body'))) {
-          toRedactResponse.body = JSON.parse(toRedactResponse.body);
+        if (toRedactResponse?.data && isJSONString(JSON.stringify(toRedactResponse.data))) {
+          toRedactResponse.data = JSON.parse(JSON.stringify(toRedactResponse.data));
         }
-        log.info(redact({request: options, response: toRedactResponse}), `Response (Good) ${logString}`);
+        log.info(
+          redact({ request: options, response: toRedactResponse }),
+          `Response (Good) ${logString}`
+        );
       } else {
         log.error(
-          redact({request: options, response, error}),
-          `Response (Bad${statusCode ? ' - ' + statusCode : ''}) ${logString}`,
+          redact({ request: options, response, error }),
+          `Response (Bad${statusCode ? ' - ' + statusCode : ''}) ${logString}`
         );
       }
     }
   }
 };
 
-type RecurseVisitorFunctionInputType = 'ROOT'|'ARRAY'|'OBJECT';
-type RecurseVisitorAction = 'RECURSE_DEEPER'|'STOP';
+type RecurseVisitorFunctionInputType = 'ROOT' | 'ARRAY' | 'OBJECT';
+type RecurseVisitorAction = 'RECURSE_DEEPER' | 'STOP';
 type RecurseVisitorFunction = (
   type: RecurseVisitorFunctionInputType,
   value: any,
-  keyOrIndex?: string|number,
-  parent?: any,
+  keyOrIndex?: string | number,
+  parent?: any
 ) => RecurseVisitorAction;
 interface RecurseOptions {
   visitNonEnumerableNodes?: boolean;
@@ -185,7 +186,12 @@ export const recurse = (input: any, visitor: RecurseVisitorFunction, options?: R
   }
 };
 
-const _recurseImpl = (parent: any, input: any, visitor: RecurseVisitorFunction, options?: RecurseOptions) => {
+const _recurseImpl = (
+  parent: any,
+  input: any,
+  visitor: RecurseVisitorFunction,
+  options?: RecurseOptions
+) => {
   if (Array.isArray(input)) {
     for (let i = 0; i < input.length; i++) {
       const action = visitor('ARRAY', input[i], i, input);
@@ -259,7 +265,10 @@ export const runFunctionAfterDelay = (ms: number, func: any): Promise<any> => {
 };
 
 export type CallbackFunction = (error: Error, value: any) => void;
-export const unpromisify = async (f: () => Promise<any>, callback: CallbackFunction): Promise<void> => {
+export const unpromisify = async (
+  f: () => Promise<any>,
+  callback: CallbackFunction
+): Promise<void> => {
   let result;
   let error;
   try {

@@ -1,4 +1,3 @@
-import {UriOptions, UrlOptions} from 'request';
 import { Promise } from 'bluebird';
 import * as _ from 'lodash';
 import * as Logger from 'bunyan';
