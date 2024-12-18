@@ -33,7 +33,7 @@ describe('Lock', () => {
       await sleep(0.2);
       promiseRunning[index] = false;
     };
-    await Promise.all(_.map(_.range(nConcurrentPromises), i => l.lockForPath(() => (promiseAtIndex(i)))));
+    await Promise.all(_.map(_.range(nConcurrentPromises), (i: number) => l.lockForPath(() => (promiseAtIndex(i)))));
   });
 
   it('Exceptions propagated to caller', async () => {

@@ -1,7 +1,8 @@
 import { SinonStub } from 'sinon';
 import sinon = require('sinon');
 import should = require('should');
-import _ = require('lodash');
+import _ from 'lodash';
+import { extend } from 'lodash-es';
 import mock = require('mock-require');
 
 import PayClient from '../src/PayClient';
@@ -25,14 +26,16 @@ const BAD_RESPONSE = {
   data: 'Server error!',
 };
 
-const buildExpectedRequest = (method: string, appId: string, path: string, data?: object, params: object = {}, idempotencyKey?: string) => {
+const buildExpectedRequest = (method: string, appId: string, path: string, data?: object, inputParams: object = {}, idempotencyKey?: string) => {
+  const params = extend({
+      appId,
+      meta: true,
+    }, inputParams);
+
   const expectedRequest = {
     method,
     url: `##URL##${path}`,
-    params: _.extend({
-      appId,
-      meta: true,
-    }, params),
+    params,
     data,
     timeout: undefined,
     headers: {
@@ -148,6 +151,7 @@ describe('PayClient', () => {
 
   it('List', async () => {
     if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+    // @ts-ignore
     requestStub.withArgs({
       method: 'GET',
       url: '##URL##/some/path/count',
@@ -162,8 +166,8 @@ describe('PayClient', () => {
         'User-Agent': 'ClassyPay Node.JS',
         'Content-Type': undefined,
       },
-    }).resolves(_.extend(_.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE), {data: {'count':40}}));
-    requestStub.resolves(_.extend(
+    }).resolves(extend(_.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE), {data: {'count':40}}));
+    requestStub.resolves(extend(
       _.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE),
       {data: _.map(_.range(0, 25), () => ({}))},
     ));

@@ -11,7 +11,7 @@ export const callbackWrapper = async (next: callback, f: anonymousAsyncFunction)
   } catch (e) {
     error = e;
   } finally {
-    next(error, value);
+    next(error as Error, value);
   }
 };
 

@@ -1,6 +1,6 @@
 require('source-map-support').install();
 
-import _ = require('lodash');
+import {get} from 'lodash-es';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -21,7 +21,7 @@ export interface ThrottledRetrierOptions {
 export const throttledRetrier =
   (func: ArbitraryArgsFunction, options: ThrottledRetrierOptions): ArbitraryArgsFunction => async (...args) => {
     const guaranteedGetOption = <TResult>(key: keyof ThrottledRetrierOptions, defaultValue: TResult): TResult => {
-      const retVal = _.get<ThrottledRetrierOptions, keyof ThrottledRetrierOptions, TResult>(
+      const retVal = get<ThrottledRetrierOptions, keyof ThrottledRetrierOptions, TResult>(
         options,
         key,
         defaultValue,
@@ -55,7 +55,7 @@ export const throttledRetrier =
         return await func(...args);
       } catch (error) {
         tries++;
-        if (tries < maxNumberOfTries && isErrorRetryableFunc(error)) {
+        if (tries < maxNumberOfTries && error instanceof Error && isErrorRetryableFunc(error)) {
           const sleepMS = sleepAmountFunction(tries);
           if (!disableErrorLogging) logError(`Hit retryable error, sleeping ${sleepMS} ms (error: ${error})`);
           await sleep(sleepMS);

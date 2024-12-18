@@ -80,17 +80,20 @@ export const omitDeepWithKeys = (obj: any, excludeKeys: Array<string>, replaceme
       return;
     }
 
+    const valueAsRecord = value as Record<string, any>;
+
+
     excludeKeys.forEach(key => {
-      if (replacementValue && value[key] !== undefined) {
-        value[key] = replacementValue;
+      if (replacementValue && valueAsRecord[key] !== undefined) {
+        valueAsRecord[key] = replacementValue;
       } else {
-        delete value[key];
+        delete valueAsRecord[key];
       }
     });
 
-    stackSet.add(value);
-    for (const key of Object.keys(value)) {
-      omitFn(value[key]);
+    stackSet.add(valueAsRecord);
+    for (const key of Object.keys(valueAsRecord)) {
+      omitFn(valueAsRecord[key]);
     }
   };
   omitFn(newObj);
@@ -138,8 +141,13 @@ export const requestWithLogs = async (
     response = retValue;
     return retValue;
   } catch (e) {
-    error = e;
-    throw e;
+    if (e instanceof Error) {
+      error = e;
+      throw e;
+    } else {
+      error = new Error('An unknown error occurred');
+      throw error;
+    }
   } finally {
     if (log) {
       let statusCode = response ? response.status : undefined;
@@ -193,18 +201,21 @@ const _recurseImpl = (
   options?: RecurseOptions
 ) => {
   if (Array.isArray(input)) {
-    for (let i = 0; i < input.length; i++) {
-      const action = visitor('ARRAY', input[i], i, input);
+    const inputArray = input as [key: any];
+    for (let i = 0; i < inputArray.length; i++) {
+      const action = visitor('ARRAY', inputArray[i], i, inputArray);
       if (action === 'RECURSE_DEEPER') {
-        _recurseImpl(input, input[i], visitor, options);
+        _recurseImpl(inputArray, inputArray[i], visitor, options);
       }
     }
   } else if (_.isObject(input) && !_.isFunction(input)) {
+    const inputObject = input as Record<string, any>;
+
     const visitNonEnumerableNodes = options ? options.visitNonEnumerableNodes : false;
-    for (const key of visitNonEnumerableNodes ? Object.getOwnPropertyNames(input) : Object.keys(input)) {
-      const action = visitor('OBJECT', input[key], key, input);
+    for (const key of visitNonEnumerableNodes ? Object.getOwnPropertyNames(inputObject) : Object.keys(input)) {
+      const action = visitor('OBJECT', inputObject[key], key, inputObject);
       if (action === 'RECURSE_DEEPER') {
-        _recurseImpl(input, input[key], visitor, options);
+        _recurseImpl(inputObject, inputObject[key], visitor, options);
       }
     }
   }
@@ -276,6 +287,10 @@ export const unpromisify = async (
   } catch (e) {
     error = e;
   } finally {
-    callback(error, result);
+    if (error instanceof Error) {
+      callback(error, result);
+    } else {
+      callback(new Error('An unknown error occurred'), result);
+    }
   }
 };
