@@ -142,7 +142,7 @@ describe('AWS Handler', () => {
 
     should.exist(error);
     (error instanceof Error).should.be.true();
-    error.message.should.be.eql('{}');
+    (<Error>error).message.should.be.eql('{}');
 
     bugsnagFactory.initialize.calledOnce.should.be.True();
     AWSConfigStub.calledOnce.should.be.True();

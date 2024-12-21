@@ -73,7 +73,7 @@ describe('API Client', () => {
         } catch (e) {
           error = e;
         } finally {
-          callback(error, result, result, undefined);
+          callback(<Error>error, result, result, undefined);
         }
       }
     },
@@ -301,7 +301,7 @@ describe('API Client', () => {
     should.not.exist(result);
     should.exist(error);
 
-    error.toString().should.be.eql('Error: API client received status code 500: Server error!');
+    (<Error>error).toString().should.be.eql('Error: API client received status code 500: Server error!');
   });
 
   it('Bad OAuth2 Credentials', async () => {
@@ -329,6 +329,6 @@ describe('API Client', () => {
     should.not.exist(result);
     should.exist(error);
 
-    error.toString().should.be.eql('Error: OAuth Error');
+    (<Error>error).toString().should.be.eql('Error: OAuth Error');
   });
 });

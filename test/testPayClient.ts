@@ -2,7 +2,6 @@ import { SinonStub } from 'sinon';
 import sinon = require('sinon');
 import should = require('should');
 import _ from 'lodash';
-import { extend } from 'lodash-es';
 import mock = require('mock-require');
 
 import PayClient from '../src/PayClient';
@@ -27,7 +26,7 @@ const BAD_RESPONSE = {
 };
 
 const buildExpectedRequest = (method: string, appId: string, path: string, data?: object, inputParams: object = {}, idempotencyKey?: string) => {
-  const params = extend({
+  const params = _.extend({
       appId,
       meta: true,
     }, inputParams);
@@ -46,7 +45,7 @@ const buildExpectedRequest = (method: string, appId: string, path: string, data?
   }
 
   if (idempotencyKey) {
-    expectedRequest.headers['x-classypay-idempotency-key'] = idempotencyKey;
+    (<any>expectedRequest).headers['x-classypay-idempotency-key'] = idempotencyKey;
   }
 
   return expectedRequest;
@@ -166,8 +165,8 @@ describe('PayClient', () => {
         'User-Agent': 'ClassyPay Node.JS',
         'Content-Type': undefined,
       },
-    }).resolves(extend(_.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE), {data: {'count':40}}));
-    requestStub.resolves(extend(
+    }).resolves(_.extend(_.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE), {data: {'count':40}}));
+    requestStub.resolves(_.extend(
       _.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE),
       {data: _.map(_.range(0, 25), () => ({}))},
     ));

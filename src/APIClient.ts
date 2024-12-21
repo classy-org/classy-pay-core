@@ -56,7 +56,7 @@ export class APIClient {
         if (err) {
           reject(err);
         } else {
-          resolve(accessToken);
+          resolve(<string>accessToken);
         }
       });
     });
