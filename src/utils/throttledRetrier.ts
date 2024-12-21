@@ -31,39 +31,39 @@ export const throttledRetrier =
       }
       return <TResult> retVal;
     };
-    //
-    // const maxNumberOfTries = guaranteedGetOption<number>('maxNumberOfTries', 5);
-    // if (maxNumberOfTries <= 1 || maxNumberOfTries > 10) {
-    //   throw new Error(`Throttled retrier's max number of tries must be between 2 and 10, was ${maxNumberOfTries}`);
-    // }
-    // const sleepAmountFunction = guaranteedGetOption<SleepAmountFunction>(
-    //   'sleepAmountFunction',
-    //   (attemptNumber: number) => 1000 * attemptNumber,
-    // );
-    // const isErrorRetryableFunc = guaranteedGetOption<IsErrorRetryableFunction>(
-    //   'isErrorRetryableFunc',
-    //   error => true,
-    // );
-    // const disableErrorLogging = guaranteedGetOption<boolean>(
-    //   'disableErrorLogging',
-    //   false,
-    // );
 
-    // let tries = 0;
-    // while (true) {
-    //   try {
-    //     return await func(...args);
-    //   } catch (error) {
-    //     tries++;
-    //     if (tries < maxNumberOfTries && error instanceof Error && isErrorRetryableFunc(error)) {
-    //       const sleepMS = sleepAmountFunction(tries);
-    //       if (!disableErrorLogging) logError(`Hit retryable error, sleeping ${sleepMS} ms (error: ${error})`);
-    //       await sleep(sleepMS);
-    //     } else {
-    //       throw error;
-    //     }
-    //   }
-    // }
+    const maxNumberOfTries = guaranteedGetOption<number>('maxNumberOfTries', 5);
+    if (maxNumberOfTries <= 1 || maxNumberOfTries > 10) {
+      throw new Error(`Throttled retrier's max number of tries must be between 2 and 10, was ${maxNumberOfTries}`);
+    }
+    const sleepAmountFunction = guaranteedGetOption<SleepAmountFunction>(
+      'sleepAmountFunction',
+      (attemptNumber: number) => 1000 * attemptNumber,
+    );
+    const isErrorRetryableFunc = guaranteedGetOption<IsErrorRetryableFunction>(
+      'isErrorRetryableFunc',
+      error => true,
+    );
+    const disableErrorLogging = guaranteedGetOption<boolean>(
+      'disableErrorLogging',
+      false,
+    );
+
+    let tries = 0;
+    while (true) {
+      try {
+        return await func(...args);
+      } catch (error) {
+        tries++;
+        if (tries < maxNumberOfTries && error instanceof Error && isErrorRetryableFunc(error)) {
+          const sleepMS = sleepAmountFunction(tries);
+          if (!disableErrorLogging) logError(`Hit retryable error, sleeping ${sleepMS} ms (error: ${error})`);
+          await sleep(sleepMS);
+        } else {
+          throw error;
+        }
+      }
+    }
   };
 
 export default throttledRetrier;
