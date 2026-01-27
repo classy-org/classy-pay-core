@@ -33,7 +33,7 @@ export const handlerGenerator = (handler: ClassyAWSHandler, appName: string) => 
         await once.do();
         result = await handler(event, context, config);
       } catch (e) {
-        error = e.toString() === '[object Object]' ? new Error(JSON.stringify(e)) : e;
+        error = (e as Error).toString() === '[object Object]' ? new Error(JSON.stringify(e)) : e;
         if (await config.get('bugsnagEnabled')) {
           await promisify(bugsnag.notify)(error, {
             metaData: {
@@ -42,7 +42,7 @@ export const handlerGenerator = (handler: ClassyAWSHandler, appName: string) => 
           });
         }
       } finally {
-        callback(error, result);
+        callback(error as Error, result);
       }
     })();
   };

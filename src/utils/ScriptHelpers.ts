@@ -220,13 +220,13 @@ export const runPipes = (
           finalStream.on('finish', () => {
             if (!called) {
               called = true;
-              resolve();
+              resolve(null);
             }
           });
         } else {
           if (!called) {
             called = true;
-            resolve();
+            resolve(null);
           }
         }
         await setup(config, args, context, pipeline);

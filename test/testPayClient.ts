@@ -1,7 +1,7 @@
 import { SinonStub } from 'sinon';
 import sinon = require('sinon');
 import should = require('should');
-import _ = require('lodash');
+import _ from 'lodash';
 import mock = require('mock-require');
 
 import PayClient from '../src/PayClient';
@@ -10,41 +10,42 @@ require('should-sinon');
 type StubFunction = (...params: any[]) => any;
 
 const SUCCESSFUL_EMPTY_JSON_RESPONSE = {
-  statusCode: 200,
+  status: 200,
   headers: {
     'content-type': ['application/json'],
   },
-  body: '{}',
+  data: {},
 };
 
 const BAD_RESPONSE = {
-  statusCode: 500,
+  status: 500,
   headers: {
     'content-type': ['application/json'],
   },
-  body: 'Server error!',
+  data: 'Server error!',
 };
 
-const buildExpectedRequest = (method: string, appId: string, path: string, body?: string, qs: object = {}, idempotencyKey?: string) => {
+const buildExpectedRequest = (method: string, appId: string, path: string, data?: object, inputParams: object = {}, idempotencyKey?: string) => {
+  const params = _.extend({
+      appId,
+      meta: true,
+    }, inputParams);
+
   const expectedRequest = {
     method,
     url: `##URL##${path}`,
-    qs: _.extend({
-      appId,
-      meta: true,
-    }, qs),
-    body,
+    params,
+    data,
     timeout: undefined,
     headers: {
       'Authorization': '##SIGNATURE##',
       'User-Agent': 'ClassyPay Node.JS',
-      'Content-Type': body ? 'application/json' : undefined,
+      'Content-Type': data ? 'application/json' : undefined,
     },
-    resolveWithFullResponse: true,
   }
 
   if (idempotencyKey) {
-    expectedRequest.headers['x-classypay-idempotency-key'] = idempotencyKey;
+    (<any>expectedRequest).headers['x-classypay-idempotency-key'] = idempotencyKey;
   }
 
   return expectedRequest;
@@ -121,7 +122,7 @@ describe('PayClient', () => {
     signStub.calledOnce.should.be.True();
     signStub.getCall(0).args.should.be.eql(['POST', '/some/path', 'application/json', '{}']);
     requestStub.calledOnce.should.be.True();
-    requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('POST', 'appId', '/some/path', '{}'));
+    requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('POST', 'appId', '/some/path', {}));
   });
 
   it('Put', async () => {
@@ -132,12 +133,13 @@ describe('PayClient', () => {
     signStub.calledOnce.should.be.True();
     signStub.getCall(0).args.should.be.eql(['PUT', '/some/path', 'application/json', '{}']);
     requestStub.calledOnce.should.be.True();
-    requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('PUT', 'appId', '/some/path', '{}'));
+    requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('PUT', 'appId', '/some/path', {}));
   });
 
   it('Del(ete)', async () => {
     if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
     requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
+
     const obj = await payClient.del('appId', '/some/path');
     obj.should.be.eql({});
     signStub.calledOnce.should.be.True();
@@ -148,25 +150,25 @@ describe('PayClient', () => {
 
   it('List', async () => {
     if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+    // @ts-ignore
     requestStub.withArgs({
       method: 'GET',
       url: '##URL##/some/path/count',
-      qs: {
+      params: {
         appId: 'appId',
         meta: true,
       },
-      body: undefined,
+      data: undefined,
       timeout: undefined,
       headers: {
         'Authorization': '##SIGNATURE##',
         'User-Agent': 'ClassyPay Node.JS',
         'Content-Type': undefined,
       },
-      resolveWithFullResponse: true,
-    }).resolves(_.extend(_.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE), {body: '{"count":40}'}));
+    }).resolves(_.extend(_.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE), {data: {'count':40}}));
     requestStub.resolves(_.extend(
       _.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE),
-      {body: JSON.stringify(_.map(_.range(0, 25), () => ({})))},
+      {data: _.map(_.range(0, 25), () => ({}))},
     ));
     const obj = await payClient.list('appId', '/some/path');
     obj.should.be.eql(_.map(_.range(0, 50), () => ({})));
@@ -193,7 +195,7 @@ describe('PayClient', () => {
     signStub.calledOnce.should.be.True();
     signStub.getCall(0).args.should.be.eql(['POST', '/some/path', 'application/json', '{}']);
     requestStub.calledOnce.should.be.True();
-    requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('POST', 'appId', '/some/path', '{}', undefined, idempotencyKey));
+    requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('POST', 'appId', '/some/path', {}, undefined, idempotencyKey));
   });
 
   it('Put accepts idempotencyKey', async () => {
@@ -205,7 +207,7 @@ describe('PayClient', () => {
     signStub.calledOnce.should.be.True();
     signStub.getCall(0).args.should.be.eql(['PUT', '/some/path', 'application/json', '{}']);
     requestStub.calledOnce.should.be.True();
-    requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('PUT', 'appId', '/some/path', '{}', undefined, idempotencyKey));
+    requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('PUT', 'appId', '/some/path', {}, undefined, idempotencyKey));
   });
 
   it('Rejects non-string appId', async () => {

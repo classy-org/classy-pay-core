@@ -1,6 +1,6 @@
 require('source-map-support').install();
 
-import _ = require('lodash');
+import _ from 'lodash';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -55,7 +55,7 @@ export const throttledRetrier =
         return await func(...args);
       } catch (error) {
         tries++;
-        if (tries < maxNumberOfTries && isErrorRetryableFunc(error)) {
+        if (tries < maxNumberOfTries && error instanceof Error && isErrorRetryableFunc(error)) {
           const sleepMS = sleepAmountFunction(tries);
           if (!disableErrorLogging) logError(`Hit retryable error, sleeping ${sleepMS} ms (error: ${error})`);
           await sleep(sleepMS);

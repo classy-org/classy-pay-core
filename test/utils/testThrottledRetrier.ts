@@ -2,7 +2,7 @@ import sinon = require('sinon');
 import should = require('should');
 require('should-sinon');
 
-import { throttledRetrier } from '../../src/utils/throttledRetrier';
+import throttledRetrier from '../../src/utils/throttledRetrier';
 
 describe('Throttled retrier', () => {
   it('Runs function only once in base success case', async () => {

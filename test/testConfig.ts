@@ -18,7 +18,7 @@ describe('Config', () => {
       get: (key: string) => new Promise<void>(resolve => resolve()),
       name: () => 'mock',
     }));
-    dataSourceMocks = _.map(dataSources, dataSource => (sinon.mock(dataSource)));
+    dataSourceMocks = _.map(dataSources, (dataSource: any) => (sinon.mock(dataSource)));
     config = new Config(dataSources);
   });
 

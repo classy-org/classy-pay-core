@@ -1,10 +1,10 @@
-import {UriOptions, UrlOptions} from 'request';
 import { Promise } from 'bluebird';
 import * as _ from 'lodash';
 import * as Logger from 'bunyan';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { CreateHMACSigner, HMACSigner } from './utils/hmac256AuthSigner';
-import {RequestOptions, requestWithLogs} from './utils/utils';
+import { requestWithLogs } from './utils/utils';
 
 require('source-map-support').install();
 
@@ -22,14 +22,14 @@ interface RequestResponse {
 export interface AppSpecificPayClient {
   list: (resource: string) => Promise<Array<object>>;
   get: (resource: string, params?: object) => Promise<string | object>;
-  post: (resource: string, object: object, params?: object) => Promise<string|object>;
-  put: (resource: string, object: object, params?: object) => Promise<string|object>;
-  del: (resource: string, params?: object) => Promise<string|object>;
+  post: (resource: string, object: object, params?: object) => Promise<string | object>;
+  put: (resource: string, object: object, params?: object) => Promise<string | object>;
+  del: (resource: string, params?: object) => Promise<string | object>;
 }
 
 export class PayClient {
   private readonly apiUrl: string;
-  private readonly config: { timeout?: number};
+  private readonly config: { timeout?: number };
   private readonly sign: HMACSigner;
   private readonly log?: Logger;
   private readonly version?: string;
@@ -38,7 +38,8 @@ export class PayClient {
     apiUrl: string,
     token: string,
     secret: string,
-    config: { timeout?: number, log?: Logger, version?: string } = {}) {
+    config: { timeout?: number; log?: Logger; version?: string } = {}
+  ) {
     if (!apiUrl) throw new Error('PayClient requires apiUrl');
     if (!token) throw new Error('PayClient requires token');
     if (!secret) throw new Error('PayClient requires secret');
@@ -53,11 +54,11 @@ export class PayClient {
 
   private getHeaders(method: string, resource: string, payload?: object, idempotencyKey?: string): object {
     const headers: any = {
-      'Authorization': this.sign(
+      Authorization: this.sign(
         method,
         resource,
         'application/json',
-        payload ? JSON.stringify(payload) : undefined,
+        payload ? JSON.stringify(payload) : undefined
       ),
       'User-Agent': 'ClassyPay Node.JS',
       'Content-Type': payload ? 'application/json' : undefined,
@@ -77,16 +78,15 @@ export class PayClient {
     resource: string,
     payload?: object,
     params?: object,
-    idempotencyKey?: string)
-    : RequestOptions {
+    idempotencyKey?: string
+  ): AxiosRequestConfig {
     return {
       method,
       url: `${this.apiUrl}${resource}`,
-      qs:  _.extend({appId, meta: true}, params),
-      body: payload ? JSON.stringify(payload) : undefined,
+      params: _.extend({ appId, meta: true }, params),
+      data: payload,
       timeout: this.config.timeout,
       headers: this.getHeaders(method, resource, payload, idempotencyKey),
-      resolveWithFullResponse: true,
     };
   }
 
@@ -96,31 +96,38 @@ export class PayClient {
     resource: string,
     payload?: object,
     params?: object,
-    idempotencyKey?: string)
-    : Promise<RequestResponse> {
+    idempotencyKey?: string
+  ): Promise<RequestResponse> {
     if (!_.isString(appId)) {
       throw new Error('App ID must be provided as string to avoid losing precision');
     }
-    if (!resource.match(/^\/[\/A-Za-z0-9_\\-]*$/)) {
+    if (!resource.match(/^\/[\/A-Za-z0-9_\-]*$/)) {
       throw new Error(`Invalid resource: ${resource}`);
     }
     const options = this.getOptions(appId, method, resource, payload, params, idempotencyKey);
-    const response = await requestWithLogs(options, this.log);
-    const status = response.statusCode;
-    if (status < 200 || status > 299) {
-      throw new Error(`Server returned error code ${status} from ${method} ${resource}: ${response && response.body}`);
+    // tslint:disable-next-line:no-console
+    const response: AxiosResponse = await requestWithLogs(options, this.log);
+
+    if (response.status < 200 || response.status > 299) {
+      throw new Error(
+        `Server returned error code ${response.status} from ${method} ${resource}: ${response.data}`
+      );
     }
 
     return {
-      status,
-      object: (response.body && response.headers && response.headers['content-type'] &&
-        _.includes(response.headers['content-type'], 'application/json')) ?
-        JSON.parse(response.body)
-        : _.get(response, 'body'),
+      status: response.status,
+      object: response.data,
     };
   }
 
-  private async forObject(appId: string, method: string, resource: string, body?: object, params?: object, idempotencyKey?: string): Promise<object|string> {
+  private async forObject(
+    appId: string,
+    method: string,
+    resource: string,
+    body?: object,
+    params?: object,
+    idempotencyKey?: string
+  ): Promise<object | string> {
     return (await this.request(appId, method, resource, body, params, idempotencyKey)).object;
   }
 
@@ -130,108 +137,68 @@ export class PayClient {
       throw new Error(`Expected server response with count, instead got: ${responseObj}`);
     } else {
       const max = responseObj.count;
-      const results = await Promise.map(_.range(0, max, PAGE_LIMIT),
+      const results = await Promise.map(
+        _.range(0, max, PAGE_LIMIT),
         async page => {
-          const innerResponse = await this.request(
-            appId,
-            'GET',
-            resource,
-            undefined,
-            {limit: PAGE_LIMIT, offset: page},
-          );
+          const innerResponse = await this.request(appId, 'GET', resource, undefined, {
+            limit: PAGE_LIMIT,
+            offset: page,
+          });
           if (innerResponse.status < 200 || innerResponse.status > 299 || typeof innerResponse.object === 'string') {
-            throw new Error(`Expected server response with object, instead got: ${innerResponse}`);
+            throw new Error(
+              `Expected server response with object, instead got: ${innerResponse}`
+            );
           } else {
-            return innerResponse.object;
+            return innerResponse.object as object[];
           }
-        }, {
+        },
+        {
           concurrency: 10,
-        });
+        }
+      );
       return _.flatten(results);
     }
   }
 
-  /**
-   * Get a list of objects for a resource.
-   *
-   * @param {String} appId the pay application id
-   * @param {String} resource the pay resource
-   *
-   * @return {Array} an array of objects
-   */
   public async list(appId: string, resource: string): Promise<Array<object>> {
     return await this.forList(appId, resource);
   }
 
-  /**
-   * Get an object given a resource.
-   *
-   * @param {String} appId the pay application id
-   * @param {String} resource the pay resource
-   * @param {Object} params additional queries to request
-   *
-   * @return {Object} an object
-   */
-  public async get(appId: string, resource: string, params?: object): Promise<string|object> {
+  public async get(appId: string, resource: string, params?: object): Promise<string | object> {
     return await this.forObject(appId, 'GET', resource, undefined, params);
   }
 
-  /**
-   * Create an object at a resource.
-   *
-   * @param {String} appId the pay application id
-   * @param {String} resource the pay resource
-   * @param {Object} object the object to create
-   * @param {Object} params additional queries to request
-   * @param {String} idempotencyKey
-   *
-   * @return {Object} the created object
-   */
-  public async post(appId: string, resource: string, object: object, params?: object, idempotencyKey?: string): Promise<string|object> {
+  public async post(
+    appId: string,
+    resource: string,
+    object: object,
+    params?: object,
+    idempotencyKey?: string
+  ): Promise<string | object> {
     return await this.forObject(appId, 'POST', resource, object, params, idempotencyKey);
   }
 
-  /**
-   * Update an object at a resource.
-   *
-   * @param {String} appId the pay application id
-   * @param {String} resource the pay resource
-   * @param {Object} object the updated object
-   * @param {Object} params additional queries to request
-   * @param {String} idempotencyKey
-   *
-   * @return {Object} the updated object
-   */
-  public async put(appId: string, resource: string, object: object, params?: object, idempotencyKey?: string): Promise<string|object> {
+  public async put(
+    appId: string,
+    resource: string,
+    object: object,
+    params?: object,
+    idempotencyKey?: string
+  ): Promise<string | object> {
     return await this.forObject(appId, 'PUT', resource, object, params, idempotencyKey);
   }
 
-  public async del(appId: string, resource: string, params?: object): Promise<string|object> {
-    /**
-     * Remove an object at a resource.
-     *
-     * @param {String} appId the pay application id
-     * @param {String} resource the pay resource
-     * @param {Object} params additional queries to request
-     *
-     * @return {Object} the removed object
-     */
+  public async del(appId: string, resource: string, params?: object): Promise<string | object> {
     return await this.forObject(appId, 'DELETE', resource, undefined, params);
   }
 
-  /**
-   * Generate an appId-specific pay client
-   *
-   * @param {String} appId app ID
-   * @returns {Object} Pay Client
-   */
   public forAppId(appId: string): AppSpecificPayClient {
     if (!_.isString(appId)) {
       throw new Error('App ID must be provided as string to avoid losing precision');
     }
 
     return {
-      list: resource => this.list(appId, resource),
+      list:resource => this.list(appId, resource),
       get: (resource, params) => this.get(appId, resource, params),
       post: (resource, object, params) => this.post(appId, resource, object, params),
       put: (resource, object, params) => this.put(appId, resource, object, params),

@@ -8,28 +8,28 @@ import { normalizeUrl, JSONParseBig } from '../src/utils/utils';
 require('should-sinon');
 
 const SUCCESSFUL_EMPTY_JSON_RESPONSE = {
-  statusCode: 200,
+  status: 200,
   headers: {
     'content-type': ['application/json'],
   },
-  body: '{}',
+  data: {},
 };
 
 const SUCCESSFUL_JSON_RESPONSE = (data: any, nextPage?: string) => ({
-  statusCode: 200,
+  status: 200,
   headers: {
     'content-type': ['application/json'],
     'next_page_url': nextPage,
   },
-  body: JSON.stringify({data: [data]}),
+  data: {data: [data]},
 });
 
 const BAD_RESPONSE = {
-  statusCode: 500,
+  status: 500,
   headers: {
     'content-type': ['application/json'],
   },
-  body: 'Server error!',
+  data: 'Server error!',
 };
 
 describe('API Client', () => {
@@ -73,7 +73,7 @@ describe('API Client', () => {
         } catch (e) {
           error = e;
         } finally {
-          callback(error, result, result, undefined);
+          callback(<Error>error, result, result, undefined);
         }
       }
     },
@@ -122,7 +122,6 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-      resolveWithFullResponse: true,
     }, undefined]);
   });
 
@@ -161,7 +160,6 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-      resolveWithFullResponse: true,
     }, undefined]);
     requestStub.getCalls()[1].args.should.be.eql([{
       url: 'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param&page=2',
@@ -171,7 +169,6 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-      resolveWithFullResponse: true,
     }, undefined]);
     requestStub.getCalls()[2].args.should.be.eql([{
       url: 'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param&page=3',
@@ -181,7 +178,6 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-      resolveWithFullResponse: true,
     }, undefined]);
   });
 
@@ -210,8 +206,7 @@ describe('API Client', () => {
         'User-Agent': 'ClassyPay Node.JS',
         'Content-Type': 'application/json',
       },
-      body: '{"fake":"body"}',
-      resolveWithFullResponse: true,
+      data: {'fake':'body'},
     }, undefined]);
   });
 
@@ -240,8 +235,7 @@ describe('API Client', () => {
         'User-Agent': 'ClassyPay Node.JS',
         'Content-Type': 'application/json',
       },
-      body: '{"fake":"body"}',
-      resolveWithFullResponse: true,
+      data: {'fake':'body'},
     }, undefined]);
   });
 
@@ -269,7 +263,6 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-      resolveWithFullResponse: true,
     }, undefined]);
   });
 
@@ -303,13 +296,12 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-      resolveWithFullResponse: true,
     }, undefined]);
 
     should.not.exist(result);
     should.exist(error);
 
-    error.toString().should.be.eql('Error: API client received status code 500: Server error!');
+    (<Error>error).toString().should.be.eql('Error: API client received status code 500: Server error!');
   });
 
   it('Bad OAuth2 Credentials', async () => {
@@ -337,6 +329,6 @@ describe('API Client', () => {
     should.not.exist(result);
     should.exist(error);
 
-    error.toString().should.be.eql('Error: OAuth Error');
+    (<Error>error).toString().should.be.eql('Error: OAuth Error');
   });
 });
