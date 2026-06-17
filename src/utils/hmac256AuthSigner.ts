@@ -12,7 +12,7 @@ export const CreateHMACSigner: HMACSignerFactory = (service: string, token: stri
 
   return (method, path, contentType, body) => {
     const ts = Math.floor(new Date().getTime() / 1000);
-    const bodyPart = body ? crypto.createHash('md5').update(body).digest('hex') : '';
+    const bodyPart = body ? crypto.createHash('sha256').update(body).digest('hex') : '';
     const message = `${method}\n${path}\n${(body ? contentType : '')}\n${ts}\n${bodyPart}`;
     const signature = crypto.createHmac('sha256', secret).update(message).digest('hex');
     return `${service} ts=${ts} token=${token} signature=${signature}`;
