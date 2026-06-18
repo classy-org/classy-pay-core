@@ -21,7 +21,7 @@ describe('HMAC256AuthSigner', () => {
       }),
     });
     cryptoStubs = {
-      createHash: sinon.stub(crypto, 'createHash').returns(cryptoFaker('##MD5HASH##')),
+      createHash: sinon.stub(crypto, 'createHash').returns(cryptoFaker('##SHA256HASH##')),
       createHmac: sinon.stub(crypto, 'createHmac').returns(cryptoFaker('##SHA256HMAC##')),
     };
 
@@ -42,6 +42,7 @@ describe('HMAC256AuthSigner', () => {
     const signed = sign('method', 'path', 'contentType', 'body');
     signed.should.match(/^service ts=[0-9]+ token=token signature=##SHA256HMAC##$/);
     cryptoStubs.createHash.should.have.been.calledOnce();
+    cryptoStubs.createHash.should.have.been.calledWith('sha256');
     cryptoStubs.createHmac.should.have.been.calledOnce();
   });
 
