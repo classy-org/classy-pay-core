@@ -71,6 +71,21 @@ type AxiosRequestOptions = AxiosRequestConfig;
 
 type AxiosResponseWithBody<T = any> = AxiosResponse<T> & { body?: T };
 
+// Walks the prototype chain to find a property's descriptor, since the
+// property may be an accessor (getter/setter) defined on a prototype rather
+// than an own property of the object.
+const findPropertyDescriptor = (obj: object, key: string): PropertyDescriptor | undefined => {
+  let current: any = obj;
+  while (current) {
+    const descriptor = Object.getOwnPropertyDescriptor(current, key);
+    if (descriptor) {
+      return descriptor;
+    }
+    current = Object.getPrototypeOf(current);
+  }
+  return undefined;
+};
+
 export const omitDeepWithKeys = (obj: any, excludeKeys: Array<string>, replacementValue?: string) => {
   const stackSet = new Set();
   const newObj = _.cloneDeep<any>(obj);
@@ -84,9 +99,20 @@ export const omitDeepWithKeys = (obj: any, excludeKeys: Array<string>, replaceme
 
 
     excludeKeys.forEach(key => {
+      const descriptor = findPropertyDescriptor(valueAsRecord, key);
       if (replacementValue && valueAsRecord[key] !== undefined) {
+        // Skip properties that can't be reassigned (e.g. getter-only accessors,
+        // possibly inherited from a prototype, or otherwise non-writable).
+        if (descriptor && !descriptor.writable && !descriptor.set) {
+          return;
+        }
         valueAsRecord[key] = replacementValue;
       } else {
+        // Skip properties that can't be deleted (non-configurable). Inherited
+        // properties have no own descriptor here, so delete is a safe no-op.
+        if (descriptor && !descriptor.configurable && Object.prototype.hasOwnProperty.call(valueAsRecord, key)) {
+          return;
+        }
         delete valueAsRecord[key];
       }
     });

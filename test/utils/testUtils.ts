@@ -3,7 +3,7 @@ import should = require('should');
 import * as _ from 'lodash';
 
 // tslint:disable-next-line:max-line-length
-import { normalizeUrl, stringToBoolean, redact, sequelizeCloneDeep, recurse, runFunctionAfterDelay } from '../../src/utils/utils';
+import { normalizeUrl, stringToBoolean, redact, omitDeepWithKeys, sequelizeCloneDeep, recurse, runFunctionAfterDelay } from '../../src/utils/utils';
 require('should-sinon');
 
 describe('Normalizer', () => {
@@ -158,6 +158,92 @@ describe('Redact', () => {
         'content-length': 5857,
       },
     },
+  });
+});
+
+describe('omitDeepWithKeys non-writable properties', () => {
+  // Builds an object whose `source` is an accessor on its prototype, rather
+  // than an own property. This reproduces the production failure: _.cloneDeep
+  // converts own getters into writable values but preserves the prototype, so
+  // an inherited getter-only accessor survives the clone. `hasSetter` controls
+  // whether a setter is also present.
+  const withPrototypeAccessor = (ownProps: object, hasSetter = false) => {
+    let backing = 'card';
+    const descriptor: PropertyDescriptor = {
+      enumerable: false,
+      configurable: true,
+      get: () => backing,
+    };
+    if (hasSetter) {
+      descriptor.set = (value: string) => { backing = value; };
+    }
+    const proto = {};
+    Object.defineProperty(proto, 'source', descriptor);
+    return Object.assign(Object.create(proto), ownProps);
+  };
+
+  it('does not throw and skips a getter-only property inherited from a prototype', () => {
+    let output: any;
+    (() => {
+      output = omitDeepWithKeys(
+        withPrototypeAccessor({ email: 'user@example.com' }),
+        ['email', 'source'],
+        '*** REDACTED ***',
+      );
+    }).should.not.throw();
+
+    // Writable property is redacted as normal.
+    output.email.should.be.equal('*** REDACTED ***');
+    // Getter-only property is left intact rather than crashing.
+    output.source.should.be.equal('card');
+  });
+
+  it('does not throw on the delete path (no replacement value) for a prototype getter-only property', () => {
+    let output: any;
+    (() => {
+      // No replacementValue => delete path. Deleting an inherited accessor is a
+      // no-op rather than a crash.
+      output = omitDeepWithKeys(
+        withPrototypeAccessor({ email: 'user@example.com' }),
+        ['email', 'source'],
+      );
+    }).should.not.throw();
+
+    // Writable own property is removed.
+    should.not.exist(output.email);
+    // Inherited getter is untouched and still readable.
+    output.source.should.be.equal('card');
+  });
+
+  it('redacts a getter property that also has a setter', () => {
+    let output: any;
+    (() => {
+      output = omitDeepWithKeys(
+        withPrototypeAccessor({}, true),
+        ['source'],
+        '*** REDACTED ***',
+      );
+    }).should.not.throw();
+
+    // A setter exists, so the value can be (and is) redacted.
+    output.source.should.be.equal('*** REDACTED ***');
+  });
+
+  it('redacts nested writable properties even when a sibling is getter-only', () => {
+    const input = {
+      outer: {
+        email: 'user@example.com',
+        nested: withPrototypeAccessor({}),
+      },
+    };
+
+    let output: any;
+    (() => {
+      output = omitDeepWithKeys(input, ['email', 'source'], '*** REDACTED ***');
+    }).should.not.throw();
+
+    output.outer.email.should.be.equal('*** REDACTED ***');
+    output.outer.nested.source.should.be.equal('card');
   });
 });
 
