@@ -149,6 +149,47 @@ export const redact = (obj: any) =>
     '*** REDACTED ***'
   );
 
+// If `data` is a serialized JSON string (as axios stores request bodies on
+// `config.data`), parse it back into an object so the key-based `redact()` can
+// reach the PII inside it. Otherwise key-based redaction is blind to it.
+const parseIfJSONString = (data: any): any =>
+  typeof data === 'string' && isJSONString(data) ? JSON.parse(data) : data;
+
+// Projects an axios response down to only the fields that are safe and useful
+// to log. The raw response object carries the Node http.ClientRequest (open
+// sockets, TLS session keys, the raw `Authorization: Bearer ...` header string)
+// and `config.data` (the request body as an unredactable serialized string) —
+// none of which `redact()` can scrub. We drop `config` and `request` entirely.
+const toSafeLogResponse = (response?: AxiosResponseWithBody) => {
+  if (!response) {
+    return response;
+  }
+  return {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+    data: parseIfJSONString(response.data),
+  };
+};
+
+// Projects an error down to a safe shape. For an AxiosError this strips the
+// embedded `config`/`request` (which leak the same way as above) and keeps only
+// the message, code, stack, and a sanitized response.
+const toSafeLogError = (error?: Error) => {
+  if (!error) {
+    return error;
+  }
+  if (axios.isAxiosError(error)) {
+    return {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      response: toSafeLogResponse(error.response as AxiosResponseWithBody),
+    };
+  }
+  return { message: error.message, stack: error.stack };
+};
+
 export const requestWithLogs = async (
   options: AxiosRequestOptions,
   log?: Logger
@@ -181,17 +222,17 @@ export const requestWithLogs = async (
         statusCode = error.response.status;
       }
       if (statusCode === 200 && error === undefined) {
-        const toRedactResponse = _.cloneDeep(response);
-        if (toRedactResponse?.data && isJSONString(JSON.stringify(toRedactResponse.data))) {
-          toRedactResponse.data = JSON.parse(JSON.stringify(toRedactResponse.data));
-        }
         log.info(
-          redact({ request: options, response: toRedactResponse }),
+          redact({ request: options, response: toSafeLogResponse(response) }),
           `Response (Good) ${logString}`
         );
       } else {
         log.error(
-          redact({ request: options, response, error }),
+          redact({
+            request: options,
+            response: toSafeLogResponse(response),
+            error: toSafeLogError(error),
+          }),
           `Response (Bad${statusCode ? ' - ' + statusCode : ''}) ${logString}`
         );
       }
