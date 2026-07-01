@@ -61,7 +61,7 @@ export class PayClient {
         payload ? JSON.stringify(payload) : undefined
       ),
       'User-Agent': 'ClassyPay Node.JS',
-      'Content-Type': payload ? 'application/json' : undefined,
+      'Content-Type': payload ? 'application/json' : null,
     };
     if (this.version) {
       headers['x-classypay-version'] = this.version;
