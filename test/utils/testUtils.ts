@@ -1,5 +1,6 @@
 import sinon = require('sinon');
 import should = require('should');
+import mock = require('mock-require');
 import * as _ from 'lodash';
 
 // tslint:disable-next-line:max-line-length
@@ -244,6 +245,111 @@ describe('omitDeepWithKeys non-writable properties', () => {
 
     output.outer.email.should.be.equal('*** REDACTED ***');
     output.outer.nested.source.should.be.equal('card');
+  });
+});
+
+describe('requestWithLogs', () => {
+  // A response shaped like a real axios response: it carries the Node
+  // http.ClientRequest (sockets, raw `Authorization` header string) and a
+  // `config` whose `data` is the request body as a serialized JSON string.
+  // Neither is reachable by key-based redaction, so they must not be logged.
+  const SECRET_TOKEN = 'h72deiQjXxCZLlv1';
+  const buildAxiosResponse = () => {
+    const requestBody = {
+      first_name: 'Taz',
+      email: 'thammer@test.com',
+      address1: '580 Memorial Road',
+      metadata: { token: SECRET_TOKEN },
+    };
+    return {
+      status: 200,
+      statusText: 'OK',
+      headers: { 'content-type': 'application/json' },
+      data: { ok: true, email: 'thammer@test.com' },
+      config: {
+        url: 'https://api.example.org/x',
+        method: 'put',
+        // Serialized request body — PII is inside a string here.
+        data: JSON.stringify(requestBody),
+        headers: { Authorization: 'Bearer ' + SECRET_TOKEN },
+      },
+      request: {
+        // Raw HTTP header string containing the bearer token in plaintext.
+        _header: 'PUT /x HTTP/1.1\nAuthorization: Bearer ' + SECRET_TOKEN + '\n\n',
+        socket: { _tlsOptions: { session: { type: 'Buffer', data: [1, 2, 3] } } },
+      },
+    };
+  };
+
+  let requestWithLogs: any;
+  let logInfoArg: any;
+
+  const setupWithAxios = (axiosImpl: any) => {
+    mock('axios', axiosImpl);
+    requestWithLogs = mock.reRequire('../../src/utils/utils').requestWithLogs;
+  };
+
+  afterEach(() => {
+    mock.stopAll();
+    logInfoArg = undefined;
+  });
+
+  it('does not log config, request, sockets, or the serialized request body on success', async () => {
+    const axiosImpl: any = async () => buildAxiosResponse();
+    axiosImpl.isAxiosError = () => false;
+    setupWithAxios(axiosImpl);
+
+    const log: any = {
+      info: (obj: any) => { logInfoArg = obj; },
+      error: () => { /* not expected */ },
+    };
+
+    await requestWithLogs({ url: 'https://api.example.org/x', method: 'PUT' }, log);
+
+    should.exist(logInfoArg);
+    // The whole axios object must not be dumped.
+    should.not.exist(logInfoArg.response.config);
+    should.not.exist(logInfoArg.response.request);
+    // Only the safe projection survives.
+    logInfoArg.response.status.should.equal(200);
+    logInfoArg.response.statusText.should.equal('OK');
+
+    // The bearer token must appear nowhere in the serialized log payload.
+    const serialized = JSON.stringify(logInfoArg);
+    serialized.should.not.containEql(SECRET_TOKEN);
+    // Response-body PII is still redacted by key.
+    logInfoArg.response.data.email.should.equal('*** REDACTED ***');
+  });
+
+  it('does not leak the raw request/config on error responses', async () => {
+    const axiosError: any = new Error('boom');
+    axiosError.config = { data: JSON.stringify({ token: SECRET_TOKEN }) };
+    axiosError.request = { _header: 'Authorization: Bearer ' + SECRET_TOKEN };
+    axiosError.response = { status: 500, statusText: 'ERR', headers: {}, data: 'nope' };
+
+    const axiosImpl: any = async () => { throw axiosError; };
+    axiosImpl.isAxiosError = (e: any) => e === axiosError;
+    setupWithAxios(axiosImpl);
+
+    let errorArg: any;
+    const log: any = {
+      info: () => { /* not expected */ },
+      error: (obj: any) => { errorArg = obj; },
+    };
+
+    let threw = false;
+    try {
+      await requestWithLogs({ url: 'https://api.example.org/x', method: 'PUT' }, log);
+    } catch (e) {
+      threw = true;
+    }
+    threw.should.equal(true);
+
+    should.exist(errorArg);
+    should.not.exist(errorArg.error.config);
+    should.not.exist(errorArg.error.request);
+    errorArg.error.message.should.equal('boom');
+    JSON.stringify(errorArg).should.not.containEql(SECRET_TOKEN);
   });
 });
 
