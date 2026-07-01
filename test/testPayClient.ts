@@ -40,7 +40,7 @@ const buildExpectedRequest = (method: string, appId: string, path: string, data?
     headers: {
       'Authorization': '##SIGNATURE##',
       'User-Agent': 'ClassyPay Node.JS',
-      'Content-Type': data ? 'application/json' : undefined,
+      'Content-Type': data ? 'application/json' : null,
     },
   }
 
@@ -148,6 +148,27 @@ describe('PayClient', () => {
     requestStub.getCall(0).args[0].should.be.eql(buildExpectedRequest('DELETE', 'appId', '/some/path'));
   });
 
+  it('sends no Content-Type header when there is no payload', async () => {
+    if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+    requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
+    // A bodyless PUT (e.g. a refund) must not carry a Content-Type. The signer omits it from the
+    // signed message when there is no body, so axios must not inject its `application/x-www-form-urlencoded`
+    // default (which it does when the header is `undefined`) or the server rejects the HMAC signature.
+    await payClient.put('appId', '/some/path', undefined as any);
+    requestStub.calledOnce.should.be.True();
+    const sentHeaders = requestStub.getCall(0).args[0].headers;
+    should(sentHeaders['Content-Type']).be.null();
+    sentHeaders.should.not.have.property('Content-Type', undefined);
+  });
+
+  it('sends application/json Content-Type when there is a payload', async () => {
+    if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
+    requestStub.resolves(SUCCESSFUL_EMPTY_JSON_RESPONSE);
+    await payClient.put('appId', '/some/path', {a: 1});
+    requestStub.calledOnce.should.be.True();
+    requestStub.getCall(0).args[0].headers['Content-Type'].should.be.eql('application/json');
+  });
+
   it('List', async () => {
     if (!requestStub || !signStub || !payClient) throw new Error('Cannot start test, beforeEach() wasn\'t run');
     // @ts-ignore
@@ -163,7 +184,7 @@ describe('PayClient', () => {
       headers: {
         'Authorization': '##SIGNATURE##',
         'User-Agent': 'ClassyPay Node.JS',
-        'Content-Type': undefined,
+        'Content-Type': null,
       },
     }).resolves(_.extend(_.clone(SUCCESSFUL_EMPTY_JSON_RESPONSE), {data: {'count':40}}));
     requestStub.resolves(_.extend(
