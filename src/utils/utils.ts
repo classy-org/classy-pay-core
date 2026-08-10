@@ -126,27 +126,43 @@ export const omitDeepWithKeys = (obj: any, excludeKeys: Array<string>, replaceme
   return newObj;
 };
 
-export const redact = (obj: any) =>
+export const DEFAULT_REDACT_REPLACEMENT = '*** REDACTED ***';
+
+export const DEFAULT_REDACT_KEYS: Array<string> = [
+  'Authorization',
+  'accessToken',
+  'accountId',
+  'accountNumber',
+  'address1',
+  'address2',
+  'address3',
+  'address4',
+  'city',
+  'cvv',
+  'email',
+  'firstName',
+  'lastName',
+  'phone',
+  'processorDetails',
+  'province',
+  'routingNumber',
+  'signature',
+  'source',
+  'ssn',
+  'state',
+  'token',
+  'zip',
+];
+
+export const redact = (
+  obj: any,
+  additionalKeys: Array<string> = [],
+  replacement: string = DEFAULT_REDACT_REPLACEMENT
+) =>
   omitDeepWithKeys(
     obj,
-    [
-      'Authorization',
-      'accountNumber',
-      'address1',
-      'address2',
-      'address3',
-      'address4',
-      'city',
-      'email',
-      'token',
-      'province',
-      'routingNumber',
-      'state',
-      'zip',
-      'processorDetails',
-      'source',
-    ],
-    '*** REDACTED ***'
+    _.union(DEFAULT_REDACT_KEYS, additionalKeys),
+    replacement
   );
 
 // If `data` is a serialized JSON string (as axios stores request bodies on
@@ -192,15 +208,10 @@ const toSafeLogError = (error?: Error) => {
 
 export const requestWithLogs = async (
   options: AxiosRequestOptions,
-  log?: Logger
+  log: Logger
 ): Promise<AxiosResponseWithBody> => {
-  let logString;
-  if (log) {
-    const location = options.url;
-    logString = `${options.method?.toUpperCase()} ${location}`;
-
-    log.info(redact({ request: options }), `Request ${logString}`);
-  }
+  const logString = `${options.method?.toUpperCase()} ${options.url}`;
+  log.info(redact({ request: options }), `Request ${logString}`);
   let response: undefined | AxiosResponseWithBody;
   let error: undefined | Error;
   try {
@@ -216,26 +227,24 @@ export const requestWithLogs = async (
       throw error;
     }
   } finally {
-    if (log) {
-      let statusCode = response ? response.status : undefined;
-      if (!statusCode && error && axios.isAxiosError(error) && error.response) {
-        statusCode = error.response.status;
-      }
-      if (statusCode === 200 && error === undefined) {
-        log.info(
-          redact({ request: options, response: toSafeLogResponse(response) }),
-          `Response (Good) ${logString}`
-        );
-      } else {
-        log.error(
-          redact({
-            request: options,
-            response: toSafeLogResponse(response),
-            error: toSafeLogError(error),
-          }),
-          `Response (Bad${statusCode ? ' - ' + statusCode : ''}) ${logString}`
-        );
-      }
+    let statusCode = response ? response.status : undefined;
+    if (!statusCode && error && axios.isAxiosError(error) && error.response) {
+      statusCode = error.response.status;
+    }
+    if (statusCode === 200 && error === undefined) {
+      log.info(
+        redact({ request: options, response: toSafeLogResponse(response) }),
+        `Response (Good) ${logString}`
+      );
+    } else {
+      log.error(
+        redact({
+          request: options,
+          response: toSafeLogResponse(response),
+          error: toSafeLogError(error),
+        }),
+        `Response (Bad${statusCode ? ' - ' + statusCode : ''}) ${logString}`
+      );
     }
   }
 };

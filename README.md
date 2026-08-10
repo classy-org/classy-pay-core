@@ -20,3 +20,22 @@ To load parts of the module, first load classy-pay-core as a whole, and then cal
 ```json
 const Once = require('classy-pay-core').submodule('utils/Once');
 ```
+
+# Log redaction
+
+The `Logger` provided by `LoggingDataSource` (via `config.get('Logger')`) redacts sensitive values from every log record when the environment config contains a `security` section:
+
+```yaml
+security:
+  obfuscate:        # keys to redact, anywhere in a log record, at any depth
+    - accessToken
+    - email
+    - token
+  replacement: '[HIDDEN]'   # censor value written in place of redacted values
+```
+
+The configured keys are merged with a built-in default list (`DEFAULT_REDACT_KEYS` in `utils/utils`), which covers common payment/PII keys such as `Authorization`, `accessToken`, `accountNumber`, `email`, `firstName`, `lastName`, `phone`, `cvv`, and `ssn`. Without a `security` section, the logger performs no redaction.
+
+Redaction is key-based: values inside serialized JSON strings are not reachable. Parse such strings before logging them.
+
+`requestWithLogs(options, log)` requires a logger; pass the `Logger` from `config.get('Logger')` so request/response logs inherit the configured redaction.

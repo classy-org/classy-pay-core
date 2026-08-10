@@ -1,8 +1,9 @@
 require('source-map-support').install();
 
 import {DataSource, DataSourceConfig} from '../DataSource';
+import {redact} from '../utils/utils';
 
-type ReplacerFunction = (key: string, value: string) => string;
+type ReplacerFunction = (keyOrRecord: any, value?: any) => any;
 
 class ReplacerDataSource extends DataSource {
   private replacer?: ReplacerFunction;
@@ -16,11 +17,16 @@ class ReplacerDataSource extends DataSource {
         throw Error('You need to fill in both security.obfuscate and security.replacement to use replacer');
       }
 
-      this.replacer = (key, value) => {
-        if (keys.includes(key)) {
-          return replacement;
+      // Backwards compatible with the original (key, value) => string
+      // signature: with two arguments, redacts the single key/value pair and
+      // returns the (possibly censored) value. With one argument, acts as a
+      // record-level transform that deep-redacts the configured keys (merged
+      // with the default key list inside redact()) anywhere in the record.
+      this.replacer = (keyOrRecord: any, value?: any) => {
+        if (value !== undefined) {
+          return redact({ [keyOrRecord]: value }, keys, replacement)[keyOrRecord];
         }
-        return value;
+        return redact(keyOrRecord, keys, replacement);
       };
     }
   }
