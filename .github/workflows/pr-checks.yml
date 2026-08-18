@@ -1,0 +1,63 @@
+name: PR Checks
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Required for actions/checkout
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Lint
+        run: |
+          yarn tslint
+
+  unit-test:
+    name: Unit Tests
+    runs-on: arc-runners-default
+    permissions:
+      contents: read # Required for actions/checkout
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Run tests
+        run: |
+          yarn test
+
+  build:
+    name: Build
+    runs-on: arc-runners-default
+    permissions:
+      contents: read # Required for actions/checkout
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Build
+        run: |
+          yarn build
