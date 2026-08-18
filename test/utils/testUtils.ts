@@ -4,7 +4,7 @@ import mock = require('mock-require');
 import * as _ from 'lodash';
 
 // tslint:disable-next-line:max-line-length
-import { normalizeUrl, stringToBoolean, redact, omitDeepWithKeys, sequelizeCloneDeep, recurse, runFunctionAfterDelay } from '../../src/utils/utils';
+import { normalizeUrl, stringToBoolean, redact, omitDeepWithKeys, sequelizeCloneDeep, recurse, runFunctionAfterDelay, DEFAULT_REDACT_KEYS, DEFAULT_REDACT_REPLACEMENT } from '../../src/utils/utils';
 require('should-sinon');
 
 describe('Normalizer', () => {
@@ -159,6 +159,52 @@ describe('Redact', () => {
         'content-length': 5857,
       },
     },
+  });
+});
+
+describe('Redact with configurable keys and replacement', () => {
+  it('redacts additional configured keys merged with the defaults', async () => {
+    const output = redact({
+      customKey: 'sensitive',
+      accessToken: 'access-production-123',
+      safe: 'ok',
+    }, ['customKey']);
+    output.customKey.should.be.equal(DEFAULT_REDACT_REPLACEMENT);
+    output.accessToken.should.be.equal(DEFAULT_REDACT_REPLACEMENT);
+    output.safe.should.be.equal('ok');
+  });
+
+  it('uses a custom replacement value when provided', async () => {
+    const output = redact({ email: 'user@example.com', customKey: 'x' }, ['customKey'], '[HIDDEN]');
+    output.email.should.be.equal('[HIDDEN]');
+    output.customKey.should.be.equal('[HIDDEN]');
+  });
+
+  it('redacts deeply nested objects and arrays', async () => {
+    const output = redact({
+      paymentToken: {
+        details: [{ accessToken: 'access-production-123', accountId: 'acct_1' }],
+      },
+      payers: [{ firstName: 'Taz', lastName: 'Hammer', phone: '555-0100' }],
+    });
+    output.paymentToken.details[0].accessToken.should.be.equal(DEFAULT_REDACT_REPLACEMENT);
+    output.paymentToken.details[0].accountId.should.be.equal(DEFAULT_REDACT_REPLACEMENT);
+    output.payers[0].firstName.should.be.equal(DEFAULT_REDACT_REPLACEMENT);
+    output.payers[0].lastName.should.be.equal(DEFAULT_REDACT_REPLACEMENT);
+    output.payers[0].phone.should.be.equal(DEFAULT_REDACT_REPLACEMENT);
+  });
+
+  it('does not mutate the input object', async () => {
+    const input = { email: 'user@example.com', nested: { token: 'secret' } };
+    redact(input);
+    input.email.should.be.equal('user@example.com');
+    input.nested.token.should.be.equal('secret');
+  });
+
+  it('default key list covers the sensitive keys observed in Pay Lambda logs', async () => {
+    for (const key of ['accessToken', 'accountId', 'firstName', 'lastName', 'phone', 'cvv', 'ssn', 'signature']) {
+      DEFAULT_REDACT_KEYS.should.containEql(key);
+    }
   });
 });
 

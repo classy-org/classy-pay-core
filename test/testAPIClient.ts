@@ -114,7 +114,7 @@ describe('API Client', () => {
       { grant_type: 'client_credentials' },
     ]);
     requestStub.getCalls().length.should.be.eql(1);
-    requestStub.getCalls()[0].args.should.be.eql([{
+    requestStub.getCalls()[0].args[0].should.be.eql({
       url: 'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param',
       timeout: 120000,
       method: 'GET',
@@ -122,7 +122,11 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-    }, undefined]);
+    });
+    // No log was configured: requestWithLogs requires a logger, so the client
+    // passes its silent (streamless) fallback logger instead of undefined.
+    should.exist(requestStub.getCalls()[0].args[1]);
+    requestStub.getCalls()[0].args[1].streams.should.be.eql([]);
   });
 
   it('GET request with pagination', async () => {
@@ -152,7 +156,7 @@ describe('API Client', () => {
       { grant_type: 'client_credentials' },
     ]);
     requestStub.getCalls().length.should.be.eql(3);
-    requestStub.getCalls()[0].args.should.be.eql([{
+    requestStub.getCalls()[0].args[0].should.be.eql({
       url: 'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param',
       timeout: 120000,
       method: 'GET',
@@ -160,8 +164,8 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-    }, undefined]);
-    requestStub.getCalls()[1].args.should.be.eql([{
+    });
+    requestStub.getCalls()[1].args[0].should.be.eql({
       url: 'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param&page=2',
       timeout: 120000,
       method: 'GET',
@@ -169,8 +173,8 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-    }, undefined]);
-    requestStub.getCalls()[2].args.should.be.eql([{
+    });
+    requestStub.getCalls()[2].args[0].should.be.eql({
       url: 'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param&page=3',
       timeout: 120000,
       method: 'GET',
@@ -178,7 +182,7 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-    }, undefined]);
+    });
   });
 
   it('POST request', async () => {
@@ -197,7 +201,7 @@ describe('API Client', () => {
       { grant_type: 'client_credentials' },
     ]);
     requestStub.getCalls().length.should.be.eql(1);
-    requestStub.getCalls()[0].args.should.be.eql([{
+    requestStub.getCalls()[0].args[0].should.be.eql({
       url: 'https://stagingapi.stayclassy.org/some/path/to/something/else',
       timeout: 120000,
       method: 'POST',
@@ -207,7 +211,7 @@ describe('API Client', () => {
         'Content-Type': 'application/json',
       },
       data: {'fake':'body'},
-    }, undefined]);
+    });
   });
 
   it('PUT request', async () => {
@@ -226,7 +230,7 @@ describe('API Client', () => {
       { grant_type: 'client_credentials' },
     ]);
     requestStub.getCalls().length.should.be.eql(1);
-    requestStub.getCalls()[0].args.should.be.eql([{
+    requestStub.getCalls()[0].args[0].should.be.eql({
       url: 'https://stagingapi.stayclassy.org/some/path/to/something/else',
       timeout: 120000,
       method: 'PUT',
@@ -236,7 +240,7 @@ describe('API Client', () => {
         'Content-Type': 'application/json',
       },
       data: {'fake':'body'},
-    }, undefined]);
+    });
   });
 
   it('DELETE request', async () => {
@@ -255,7 +259,7 @@ describe('API Client', () => {
       { grant_type: 'client_credentials' },
     ]);
     requestStub.getCalls().length.should.be.eql(1);
-    requestStub.getCalls()[0].args.should.be.eql([{
+    requestStub.getCalls()[0].args[0].should.be.eql({
       url: 'https://stagingapi.stayclassy.org/some/path/to/something/we/want/to/delete',
       timeout: 120000,
       method: 'DELETE',
@@ -263,7 +267,7 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-    }, undefined]);
+    });
   });
 
   it('Invalid GET request', async () => {
@@ -288,7 +292,7 @@ describe('API Client', () => {
       { grant_type: 'client_credentials' },
     ]);
     requestStub.getCalls().length.should.be.eql(1);
-    requestStub.getCalls()[0].args.should.be.eql([{
+    requestStub.getCalls()[0].args[0].should.be.eql({
       url: 'https://stagingapi.stayclassy.org/some/path/to/something?q=some_query_param',
       timeout: 120000,
       method: 'GET',
@@ -296,7 +300,7 @@ describe('API Client', () => {
         'Authorization': 'Bearer ##BEARER_TOKEN##',
         'User-Agent': 'ClassyPay Node.JS',
       },
-    }, undefined]);
+    });
 
     should.not.exist(result);
     should.exist(error);

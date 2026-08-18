@@ -7,6 +7,10 @@ import { normalizeUrl, JSONParseBig, requestWithLogs } from './utils/utils';
 
 export type MethodType = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
+// requestWithLogs requires a logger; preserve the historical "no log
+// configured, no request logging" behavior with a streamless no-op logger.
+const silentLog = Logger.createLogger({ name: 'APIClient', streams: [] });
+
 export class RequestResponseError extends Error {
   public response: AxiosResponse;
 
@@ -90,7 +94,7 @@ export class APIClient {
       options.data = payload;
     }
 
-    const response = await requestWithLogs(options, this.log);
+    const response = await requestWithLogs(options, this.log || silentLog);
     if (response.status < 200 || response.status > 299) {
       throw new RequestResponseError(
         response,

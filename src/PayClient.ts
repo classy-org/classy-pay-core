@@ -10,6 +10,10 @@ require('source-map-support').install();
 
 const PAGE_LIMIT = 25;
 
+// requestWithLogs requires a logger; preserve the historical "no log
+// configured, no request logging" behavior with a streamless no-op logger.
+const silentLog = Logger.createLogger({ name: 'PayClient', streams: [] });
+
 interface PayResponse {
   count?: number;
 }
@@ -106,7 +110,7 @@ export class PayClient {
     }
     const options = this.getOptions(appId, method, resource, payload, params, idempotencyKey);
     // tslint:disable-next-line:no-console
-    const response: AxiosResponse = await requestWithLogs(options, this.log);
+    const response: AxiosResponse = await requestWithLogs(options, this.log || silentLog);
 
     if (response.status < 200 || response.status > 299) {
       throw new Error(
