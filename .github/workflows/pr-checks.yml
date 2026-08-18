@@ -28,7 +28,7 @@ jobs:
 
   unit-test:
     name: Unit Tests
-    runs-on: arc-runners-default
+    runs-on: ubuntu-latest
     permissions:
       contents: read # Required for actions/checkout
     steps:
@@ -46,7 +46,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: arc-runners-default
+    runs-on: ubuntu-latest
     permissions:
       contents: read # Required for actions/checkout
     steps:
