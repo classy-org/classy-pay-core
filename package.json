@@ -75,5 +75,6 @@
   },
   "files": [
     "lib"
-  ]
+  ],
+  "packageManager": "yarn@4.18.0"
 }
